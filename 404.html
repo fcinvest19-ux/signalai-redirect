@@ -2,16 +2,272 @@
 <html lang="fr">
 <head>
   <meta charset="UTF-8" />
-  <title>SignalAi devient OpportIA</title>
-  <meta name="robots" content="noindex" />
-  <link rel="canonical" href="https://opportia.fr/" />
-  <!-- S305.1 : signalai.fr → opportia.fr. Le JS conserve le chemin ; le meta refresh couvre les navigateurs sans JS. -->
-  <script>
-    location.replace('https://opportia.fr' + location.pathname + location.search + location.hash);
-  </script>
-  <meta http-equiv="refresh" content="0; url=https://opportia.fr/" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Page introuvable — SignalAi</title>
+  <meta name="description" content="La page que vous cherchez n'existe pas ou a été déplacée." />
+  <meta name="robots" content="noindex,nofollow" />
+  <style>
+    :root {
+      --bg:       #0f172a;
+      --panel:    #111827;
+      --text:     #e2e8f0;
+      --muted:    #94a3b8;
+      --title:    #f1f5f9;
+      --accent:   #F05A1E;
+      --accent-2: #d94f19;
+      --primary:  #2563eb;
+      --max:      720px;
+      --radius:   18px;
+      --shadow:   0 18px 40px rgba(0,0,0,.28);
+    }
+
+    * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+      background:
+        radial-gradient(circle at top left,  rgba(240,90,30,.10),  transparent 35%),
+        radial-gradient(circle at 80% 20%,   rgba(37,99,235,.12),  transparent 28%),
+        var(--bg);
+      color: var(--text);
+      line-height: 1.55;
+      display: flex;
+      flex-direction: column;
+    }
+
+    a { color: var(--accent); text-decoration: none; }
+    a:hover { color: var(--accent-2); }
+
+    .container {
+      width: min(var(--max), calc(100% - 32px));
+      margin: 0 auto;
+    }
+
+    /* ── TOPBAR (cohérent avec landing) ─────────── */
+    .topbar {
+      position: sticky;
+      top: 0;
+      z-index: 20;
+      backdrop-filter: blur(12px);
+      background: rgba(15,23,42,.82);
+      border-bottom: 1px solid rgba(148,163,184,.12);
+    }
+
+    .topbar-inner {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 18px;
+      padding: 14px 0;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-weight: 700;
+      font-size: 16px;
+      color: var(--title);
+    }
+
+    .logo-img {
+      width: 36px;
+      height: 36px;
+      border-radius: 10px;
+      object-fit: cover;
+      flex-shrink: 0;
+    }
+
+    .nav {
+      display: flex;
+      align-items: center;
+      gap: 20px;
+      color: var(--muted);
+      font-size: 14px;
+    }
+
+    .nav a { color: var(--muted); }
+    .nav a:hover { color: var(--text); transition: color .15s; }
+
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      padding: 13px 22px;
+      border-radius: 10px;
+      border: 1px solid transparent;
+      font-weight: 600;
+      font-size: 15px;
+      transition: .18s ease;
+      white-space: nowrap;
+    }
+
+    .btn-accent {
+      background: var(--accent);
+      color: white;
+      box-shadow: 0 8px 20px rgba(240,90,30,.28);
+    }
+    .btn-accent:hover { background: var(--accent-2); color: white; }
+
+    .btn-secondary {
+      background: rgba(31,41,55,.7);
+      border-color: rgba(148,163,184,.22);
+      color: var(--text);
+    }
+    .btn-secondary:hover { border-color: rgba(148,163,184,.44); }
+
+    .btn-sm { padding: 9px 16px; font-size: 13px; border-radius: 8px; }
+
+    /* ── HERO 404 ─────────────────────────────────── */
+    main {
+      flex: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 64px 0;
+    }
+
+    .error-card {
+      background: linear-gradient(180deg, rgba(17,24,39,.92), rgba(15,23,42,.96));
+      border: 1px solid rgba(148,163,184,.14);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      padding: 56px 48px;
+      text-align: center;
+    }
+
+    .error-code {
+      display: inline-block;
+      padding: 6px 14px;
+      border-radius: 999px;
+      background: rgba(240,90,30,.12);
+      border: 1px solid rgba(240,90,30,.28);
+      color: #fed7aa;
+      font-size: 12px;
+      font-weight: 700;
+      letter-spacing: .08em;
+      text-transform: uppercase;
+      margin-bottom: 20px;
+    }
+
+    .error-number {
+      font-size: clamp(80px, 14vw, 140px);
+      font-weight: 800;
+      line-height: 1;
+      letter-spacing: -.05em;
+      background: linear-gradient(135deg, var(--accent), var(--primary));
+      -webkit-background-clip: text;
+      background-clip: text;
+      -webkit-text-fill-color: transparent;
+      margin: 0 0 16px;
+    }
+
+    h1 {
+      margin: 0 0 14px;
+      font-size: clamp(24px, 3.5vw, 32px);
+      letter-spacing: -.02em;
+      color: var(--title);
+    }
+
+    .lead {
+      margin: 0 0 32px;
+      color: var(--muted);
+      font-size: 17px;
+      line-height: 1.6;
+      max-width: 520px;
+      margin-left: auto;
+      margin-right: auto;
+    }
+
+    .actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+      justify-content: center;
+    }
+
+    /* ── FOOTER ───────────────────────────────────── */
+    footer { padding: 20px 0 36px; }
+
+    .footer-line {
+      padding-top: 18px;
+      border-top: 1px solid rgba(148,163,184,.12);
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: space-between;
+      gap: 14px;
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    .footer-links {
+      display: flex;
+      gap: 18px;
+      flex-wrap: wrap;
+    }
+    .footer-links a { color: var(--muted); }
+    .footer-links a:hover { color: var(--text); }
+
+    @media (max-width: 720px) {
+      .nav { display: none; }
+      .error-card { padding: 36px 24px; }
+      .actions .btn { width: 100%; }
+    }
+  </style>
 </head>
 <body>
-  <p>SignalAi devient OpportIA. Si la redirection ne se fait pas, rendez-vous sur <a href="https://opportia.fr/">opportia.fr</a>.</p>
+
+  <header class="topbar">
+    <div class="container topbar-inner">
+      <a href="index.html" class="brand" aria-label="SignalAi">
+        <img src="logo-signalai.png" alt="SignalAi" class="logo-img">
+        <span>SignalAi</span>
+      </a>
+      <nav class="nav" aria-label="Navigation principale">
+        <a href="index.html#solution">Solution</a>
+        <a href="index.html#cas-usage">Cas d'usage</a>
+        <a href="index.html#pourquoi">Pourquoi SignalAi</a>
+        <a href="index.html#contact">Contact</a>
+      </nav>
+      <a class="btn btn-accent btn-sm"
+         href="mailto:contact@signalai.fr?subject=Demande%20de%20d%C3%A9mo%20SignalAi">
+        Demander une démo
+      </a>
+    </div>
+  </header>
+
+  <main>
+    <div class="container">
+      <div class="error-card">
+        <span class="error-code">Erreur 404</span>
+        <div class="error-number">404</div>
+        <h1>Cette page n'existe pas</h1>
+        <p class="lead">
+          La page que vous cherchez a été déplacée, supprimée, ou n'a jamais existé.
+          Vous pouvez retourner à l'accueil ou nous contacter directement.
+        </p>
+        <div class="actions">
+          <a class="btn btn-accent" href="index.html">Retour à l'accueil</a>
+          <a class="btn btn-secondary" href="mailto:contact@signalai.fr?subject=Page%20introuvable%20sur%20signalai.fr">Nous contacter</a>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <footer>
+    <div class="container footer-line">
+      <span>SignalAi · signalai.fr — édité par FC-Invest SASU</span>
+      <div class="footer-links">
+        <a href="index.html">Accueil</a>
+        <a href="confidentialite.html">Confidentialité</a>
+        <a href="mentions-legales.html">Mentions légales</a>
+        <a href="mailto:contact@signalai.fr">Contact</a>
+      </div>
+    </div>
+  </footer>
+
 </body>
 </html>

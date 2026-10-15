@@ -1,0 +1,582 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Liste des sous-traitants — SignalAi</title>
+  <meta name="description" content="Liste nominative des sous-traitants utilisés par SignalAi pour le traitement des données à caractère personnel, avec leur localisation et le cadre de transfert applicable." />
+  <meta name="robots" content="index,follow" />
+  <link rel="canonical" href="https://signalai.fr/sous-traitants" />
+  <style>
+    :root {
+      --bg:       #0f172a;
+      --panel:    #111827;
+      --panel-2:  #1e293b;
+      --line:     #334155;
+      --text:     #e2e8f0;
+      --muted:    #94a3b8;
+      --title:    #f1f5f9;
+      --accent:   #F05A1E;
+      --accent-2: #d94f19;
+      --primary:  #2563eb;
+      --ok:       #22c55e;
+      --warn:     #fbbf24;
+      --max:      920px;
+      --radius:   18px;
+      --shadow:   0 18px 40px rgba(0,0,0,.28);
+    }
+
+    * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; scroll-padding-top: 72px; }
+
+    body {
+      margin: 0;
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+      background:
+        radial-gradient(circle at top left,  rgba(240,90,30,.07),  transparent 30%),
+        radial-gradient(circle at 80% 20%,   rgba(37,99,235,.10),  transparent 22%),
+        var(--bg);
+      color: var(--text);
+      line-height: 1.62;
+    }
+
+    a { color: var(--accent); text-decoration: none; }
+    a:hover { color: var(--accent-2); }
+
+    .container {
+      width: min(var(--max), calc(100% - 32px));
+      margin: 0 auto;
+    }
+
+    .topbar {
+      position: sticky;
+      top: 0;
+      z-index: 20;
+      backdrop-filter: blur(12px);
+      background: rgba(15,23,42,.82);
+      border-bottom: 1px solid rgba(148,163,184,.12);
+    }
+
+    .topbar-inner {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 18px;
+      padding: 14px 0;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-weight: 700;
+      font-size: 16px;
+      color: var(--title);
+    }
+    .brand:hover { color: var(--title); }
+
+    .logo-img {
+      width: 36px;
+      height: 36px;
+      border-radius: 10px;
+      object-fit: cover;
+      flex-shrink: 0;
+    }
+
+    .nav {
+      display: flex;
+      align-items: center;
+      gap: 20px;
+      color: var(--muted);
+      font-size: 14px;
+    }
+
+    .nav a { color: var(--muted); }
+    .nav a:hover { color: var(--text); transition: color .15s; }
+
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      padding: 13px 22px;
+      border-radius: 10px;
+      border: 1px solid transparent;
+      font-weight: 600;
+      font-size: 15px;
+      transition: .18s ease;
+      white-space: nowrap;
+    }
+
+    .btn-accent {
+      background: var(--accent);
+      color: white;
+      box-shadow: 0 8px 20px rgba(240,90,30,.28);
+    }
+    .btn-accent:hover { background: var(--accent-2); color: white; }
+    .btn-sm { padding: 9px 16px; font-size: 13px; border-radius: 8px; }
+
+    main {
+      padding: 56px 0 40px;
+    }
+
+    .doc-header {
+      margin-bottom: 32px;
+    }
+
+    .eyebrow {
+      display: inline-flex;
+      align-items: center;
+      padding: 6px 12px;
+      border-radius: 999px;
+      background: rgba(240,90,30,.12);
+      border: 1px solid rgba(240,90,30,.28);
+      color: #fed7aa;
+      font-size: 12px;
+      font-weight: 700;
+      letter-spacing: .03em;
+    }
+
+    h1 {
+      margin: 16px 0 12px;
+      font-size: clamp(32px, 4.5vw, 48px);
+      line-height: 1.08;
+      letter-spacing: -.02em;
+      color: var(--title);
+    }
+
+    .lead {
+      margin: 14px 0 8px;
+      color: var(--muted);
+      font-size: 17px;
+      line-height: 1.65;
+      max-width: 720px;
+    }
+
+    .updated {
+      color: var(--muted);
+      font-size: 14px;
+      margin: 0;
+    }
+
+    .toc {
+      margin: 28px 0 0;
+      padding: 22px 26px;
+      background: rgba(15,23,42,.85);
+      border: 1px solid rgba(148,163,184,.14);
+      border-radius: 14px;
+    }
+
+    .toc-title {
+      margin: 0 0 12px;
+      font-size: 11px;
+      letter-spacing: .08em;
+      text-transform: uppercase;
+      color: var(--muted);
+    }
+
+    .toc ol {
+      margin: 0;
+      padding-left: 20px;
+      columns: 2;
+      column-gap: 30px;
+      font-size: 14px;
+    }
+
+    .toc ol li {
+      margin: 4px 0;
+      break-inside: avoid;
+      color: var(--muted);
+    }
+
+    .toc ol li a { color: var(--text); }
+    .toc ol li a:hover { color: var(--accent); }
+
+    @media (max-width: 720px) {
+      .toc ol { columns: 1; }
+    }
+
+    .doc-card {
+      background: linear-gradient(180deg, rgba(17,24,39,.92), rgba(15,23,42,.96));
+      border: 1px solid rgba(148,163,184,.14);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      padding: 36px 40px;
+      margin-top: 24px;
+    }
+
+    section {
+      padding: 26px 0;
+      border-bottom: 1px solid rgba(148,163,184,.1);
+      scroll-margin-top: 80px;
+    }
+    section:first-of-type { padding-top: 6px; }
+    section:last-child { border-bottom: none; padding-bottom: 4px; }
+
+    h2 {
+      margin: 0 0 14px;
+      font-size: 22px;
+      letter-spacing: -.01em;
+      color: var(--title);
+    }
+
+    h3 {
+      margin: 20px 0 10px;
+      font-size: 17px;
+      color: var(--title);
+    }
+
+    p { margin: 0 0 12px; color: var(--text); font-size: 15px; }
+    p:last-child { margin-bottom: 0; }
+
+    ul, ol { margin: 8px 0 12px; padding-left: 22px; }
+    ul li, ol li { margin: 6px 0; color: var(--text); font-size: 15px; }
+    ul li::marker { color: var(--accent); }
+
+    strong { color: var(--title); }
+    em { color: var(--muted); font-style: normal; }
+
+    .meta-grid {
+      display: grid;
+      grid-template-columns: 220px 1fr;
+      gap: 8px 18px;
+      margin-top: 8px;
+    }
+
+    .meta-grid dt { color: var(--muted); font-size: 14px; padding-top: 2px; }
+    .meta-grid dd { margin: 0; color: var(--text); font-size: 15px; }
+
+    .callout {
+      margin: 14px 0;
+      padding: 16px 18px;
+      border-radius: 12px;
+      background: rgba(240,90,30,.08);
+      border: 1px solid rgba(240,90,30,.22);
+      color: var(--text);
+      font-size: 14px;
+    }
+
+    .callout.warn {
+      background: rgba(251,191,36,.06);
+      border-color: rgba(251,191,36,.22);
+    }
+
+    .callout strong { color: var(--title); }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 12px 0;
+      font-size: 14px;
+    }
+
+    th, td {
+      text-align: left;
+      padding: 10px 12px;
+      border-bottom: 1px solid rgba(148,163,184,.12);
+      vertical-align: top;
+    }
+
+    th {
+      color: var(--muted);
+      font-weight: 600;
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: .05em;
+      background: rgba(15,23,42,.6);
+    }
+
+    td { color: var(--text); }
+
+    .badge {
+      display: inline-block;
+      padding: 2px 8px;
+      border-radius: 6px;
+      font-size: 12px;
+      font-weight: 600;
+    }
+
+    .badge-eu  { background: rgba(34,197,94,.14);  color: #86efac; }
+    .badge-dpf { background: rgba(56,189,248,.14); color: #7dd3fc; }
+    .badge-cct { background: rgba(251,191,36,.14); color: #fcd34d; }
+
+    footer { padding: 20px 0 36px; }
+
+    .footer-line {
+      padding-top: 18px;
+      border-top: 1px solid rgba(148,163,184,.12);
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: space-between;
+      gap: 14px;
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    .footer-links {
+      display: flex;
+      gap: 18px;
+      flex-wrap: wrap;
+    }
+    .footer-links a { color: var(--muted); }
+    .footer-links a:hover { color: var(--text); }
+
+    @media (max-width: 980px) {
+      .doc-card { padding: 28px; }
+    }
+
+    @media (max-width: 720px) {
+      .nav { display: none; }
+      .doc-card { padding: 22px; }
+      .meta-grid { grid-template-columns: 1fr; gap: 4px 0; }
+      .meta-grid dt { padding-top: 8px; }
+      .btn-sm { width: auto !important; }
+      th, td { padding: 8px 6px; font-size: 13px; }
+    }
+  </style>
+</head>
+<body>
+
+  <header class="topbar">
+    <div class="container topbar-inner">
+      <a href="index.html" class="brand" aria-label="SignalAi">
+        <img src="logo-signalai.png" alt="SignalAi" class="logo-img">
+        <span>SignalAi</span>
+      </a>
+      <nav class="nav" aria-label="Navigation principale">
+        <a href="index.html#solution">Solution</a>
+        <a href="index.html#cas-usage">Cas d'usage</a>
+        <a href="index.html#pourquoi">Pourquoi SignalAi</a>
+        <a href="index.html#contact">Contact</a>
+      </nav>
+      <a class="btn btn-accent btn-sm"
+         href="mailto:contact@signalai.fr?subject=Demande%20de%20d%C3%A9mo%20SignalAi">
+        Demander une démo
+      </a>
+    </div>
+  </header>
+
+  <main>
+    <div class="container">
+
+      <div class="doc-header">
+        <span class="eyebrow">Protection des données</span>
+        <h1>Liste des sous-traitants</h1>
+        <p class="lead">Cette page recense de manière exhaustive et nominative les sous-traitants utilisés par FC-Invest SASU pour le traitement des données à caractère personnel dans le cadre du service SignalAi, avec leur localisation et le cadre de transfert applicable. Elle constitue la référence opposable pour l'application de l'article 13.1.e du RGPD et est mise à jour à chaque évolution.</p>
+        <p class="updated">Dernière mise à jour : 1ᵉʳ mai 2026</p>
+
+        <nav class="toc" aria-label="Sommaire">
+          <p class="toc-title">Sommaire</p>
+          <ol>
+            <li><a href="#cadre">Cadre juridique de la sous-traitance</a></li>
+            <li><a href="#structurels">Sous-traitants techniques structurels</a></li>
+            <li><a href="#operationnels">Sous-traitants opérationnels</a></li>
+            <li><a href="#legende">Légende et cadres de transfert</a></li>
+            <li><a href="#historique">Historique des modifications</a></li>
+            <li><a href="#droit-info">Information et opposition</a></li>
+          </ol>
+        </nav>
+      </div>
+
+      <article class="doc-card">
+
+        <section id="cadre">
+          <h2>1. Cadre juridique de la sous-traitance</h2>
+          <p>Conformément à l'article 28 du RGPD, FC-Invest SASU recourt à des sous-traitants présentant des garanties suffisantes quant à la mise en œuvre de mesures techniques et organisationnelles appropriées. Chaque sous-traitant fait l'objet d'un accord de traitement (DPA) écrit conforme à l'article 28.3 du RGPD.</p>
+          <p>FC-Invest SASU exige contractuellement de chacun de ses sous-traitants exposés à des modèles de langage (LLM) la <strong>non-utilisation des données transmises pour l'entraînement de modèles</strong>. Cette clause est vérifiée à la signature et auditée à chaque renouvellement contractuel.</p>
+          <p>La présente liste est complémentaire de la <a href="confidentialite.html#article-7">section 7 de la politique de confidentialité</a>, qui décrit la structure générale du recours à la sous-traitance et les catégories de sous-traitants opérationnels variant selon la configuration de chaque cabinet client.</p>
+        </section>
+
+        <section id="structurels">
+          <h2>2. Sous-traitants techniques structurels du service</h2>
+          <p>Ces sous-traitants interviennent dans le fonctionnement du service SignalAi indépendamment du cabinet client. Ils sont communs à l'ensemble des traitements opérés par FC-Invest SASU et constituent le socle technique de l'infrastructure et des traitements automatisés.</p>
+
+          <table>
+            <thead>
+              <tr>
+                <th>Sous-traitant</th>
+                <th>Rôle</th>
+                <th>Localisation</th>
+                <th>Cadre transfert</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><strong>GitHub, Inc.</strong></td>
+                <td>Hébergement du site web informatif signalai.fr (GitHub Pages). Aucune donnée personnelle de cabinet client ou de dirigeant analysé n'y transite.</td>
+                <td>États-Unis</td>
+                <td><span class="badge badge-dpf">DPF</span></td>
+              </tr>
+              <tr>
+                <td><strong>Hostinger International</strong></td>
+                <td>Hébergement de l'infrastructure technique du pipeline de traitement (VPS, base de données, données clients)</td>
+                <td>Paris, France (UE)</td>
+                <td><span class="badge badge-eu">UE</span></td>
+              </tr>
+              <tr>
+                <td><strong>Hetzner Online GmbH</strong></td>
+                <td>Hébergement des sauvegardes chiffrées de la base de données du pipeline (continuité de service)</td>
+                <td>Falkenstein, Allemagne (UE)</td>
+                <td><span class="badge badge-eu">UE</span></td>
+              </tr>
+              <tr>
+                <td><strong>Anthropic, PBC</strong></td>
+                <td>Modèle de langage pour la génération de résumés et l'analyse de signaux</td>
+                <td>États-Unis</td>
+                <td><span class="badge badge-dpf">DPF</span></td>
+              </tr>
+              <tr>
+                <td><strong>OpenAI, LLC</strong></td>
+                <td>Modèle de langage pour certaines étapes d'extraction et de scoring</td>
+                <td>États-Unis</td>
+                <td><span class="badge badge-dpf">DPF</span></td>
+              </tr>
+              <tr>
+                <td><strong>Brave Software, Inc.</strong></td>
+                <td>API de recherche web pour enrichissement de contexte</td>
+                <td>États-Unis</td>
+                <td><span class="badge badge-cct">CCT</span></td>
+              </tr>
+              <tr>
+                <td><strong>Perplexity AI, Inc.</strong></td>
+                <td>API de recherche augmentée pour enrichissement</td>
+                <td>États-Unis</td>
+                <td><span class="badge badge-cct">CCT</span></td>
+              </tr>
+              <tr>
+                <td><strong>Apify Technologies s.r.o.</strong></td>
+                <td>Collecte automatisée de profils LinkedIn publics</td>
+                <td>République tchèque (UE)</td>
+                <td><span class="badge badge-eu">UE</span></td>
+              </tr>
+            </tbody>
+          </table>
+        </section>
+
+        <section id="operationnels">
+          <h2>3. Sous-traitants opérationnels actuellement utilisés</h2>
+          <p>Ces sous-traitants varient selon la configuration retenue par chaque cabinet client (CRM, messagerie, outil de collaboration). La liste ci-dessous recense les sous-traitants opérationnels effectivement utilisés à la date de mise à jour indiquée en haut de cette page.</p>
+
+          <h3>3.1 Outils de gestion de la relation client (CRM)</h3>
+          <table>
+            <thead>
+              <tr>
+                <th>Sous-traitant</th>
+                <th>Rôle</th>
+                <th>Localisation</th>
+                <th>Cadre transfert</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><strong>HubSpot, Inc.</strong></td>
+                <td>CRM commercial — gestion des contacts cabinets clients, suivi des prospects ayant initié une démarche via signalai.fr</td>
+                <td>États-Unis</td>
+                <td><span class="badge badge-dpf">DPF</span></td>
+              </tr>
+            </tbody>
+          </table>
+
+          <h3>3.2 Outils de messagerie professionnelle</h3>
+          <table>
+            <thead>
+              <tr>
+                <th>Sous-traitant</th>
+                <th>Rôle</th>
+                <th>Localisation</th>
+                <th>Cadre transfert</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><strong>Google LLC (Gmail)</strong></td>
+                <td>Envoi des alertes, des digests et des communications opérationnelles par email</td>
+                <td>États-Unis</td>
+                <td><span class="badge badge-dpf">DPF</span></td>
+              </tr>
+            </tbody>
+          </table>
+
+          <h3>3.3 Outils de collaboration et de notification d'équipe</h3>
+          <table>
+            <thead>
+              <tr>
+                <th>Sous-traitant</th>
+                <th>Rôle</th>
+                <th>Localisation</th>
+                <th>Cadre transfert</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><strong>Slack Technologies, Inc.</strong></td>
+                <td>Livraison d'alertes en canal Slack pour les cabinets ayant configuré ce mode de réception, et notifications de supervision technique interne</td>
+                <td>États-Unis</td>
+                <td><span class="badge badge-dpf">DPF</span></td>
+              </tr>
+            </tbody>
+          </table>
+
+          <div class="callout">
+            <strong>Évolutions à venir :</strong> FC-Invest SASU peut être amenée à recourir à d'autres sous-traitants opérationnels pour répondre aux besoins de cabinets clients dont la configuration technique diffère (typiquement : Microsoft 365, Microsoft Teams, Salesforce, Pipedrive). Tout ajout fait l'objet d'une mise à jour de la présente page et, lorsqu'applicable, d'une notification préalable au cabinet client concerné conformément à son DPA. Les évolutions sont consignées dans la <a href="#historique">section 5</a>.
+          </div>
+        </section>
+
+        <section id="legende">
+          <h2>4. Légende et cadres de transfert</h2>
+          <p>Conformément aux articles 44 à 49 du RGPD, les transferts de données vers des sous-traitants établis hors de l'Union européenne sont encadrés par l'un des trois mécanismes suivants :</p>
+          <ul>
+            <li><span class="badge badge-eu">UE</span> <strong>Traitement réalisé dans l'Union européenne</strong> — aucun transfert hors UE.</li>
+            <li><span class="badge badge-dpf">DPF</span> <strong>Data Privacy Framework UE-États-Unis</strong> — décision d'adéquation de la Commission européenne du 10 juillet 2023. Le DPF garantit un niveau de protection des données substantiellement équivalent à celui assuré dans l'Union européenne.</li>
+            <li><span class="badge badge-cct">CCT</span> <strong>Clauses Contractuelles Types</strong> adoptées par la Commission européenne le 4 juin 2021 (décision 2021/914), incluant les mesures techniques et organisationnelles complémentaires recommandées par le Comité européen de la protection des données.</li>
+          </ul>
+        </section>
+
+        <section id="historique">
+          <h2>5. Historique des modifications</h2>
+          <p>Toute évolution substantielle de la liste des sous-traitants est consignée dans le tableau ci-dessous. Les ajouts ou retraits font par ailleurs l'objet d'une notification individualisée auprès des cabinets clients liés par contrat selon les modalités prévues à leur DPA bilatéral.</p>
+          <table>
+            <thead>
+              <tr>
+                <th>Date</th>
+                <th>Évolution</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>1ᵉʳ mai 2026</td>
+                <td>Création de la page dédiée. Recensement initial de 11 sous-traitants : 8 structurels (GitHub, Hostinger, Hetzner, Anthropic, OpenAI, Brave, Perplexity, Apify) et 3 opérationnels (HubSpot, Google Gmail, Slack).</td>
+              </tr>
+            </tbody>
+          </table>
+        </section>
+
+        <section id="droit-info">
+          <h2>6. Information et opposition</h2>
+          <p>Conformément à l'article 13.1.e du RGPD, toute personne concernée par un traitement opéré par FC-Invest SASU est informée des destinataires de ses données via la combinaison de la <a href="confidentialite.html#article-7">politique de confidentialité §7</a> (catégories) et de la présente page (liste nominative à jour).</p>
+          <p>Si vous souhaitez exercer un droit d'accès, de rectification, d'effacement, d'opposition, de limitation ou de portabilité concernant vos données traitées par FC-Invest SASU ou par l'un des sous-traitants listés ci-dessus, vous pouvez adresser votre demande à :</p>
+          <div class="callout">
+            <strong>Email</strong> : <a href="mailto:contact@signalai.fr">contact@signalai.fr</a><br>
+            <strong>Voie postale</strong> : FC-Invest SASU — Référent données personnelles — 28 rue des Folies Chaillou, 44000 Nantes, France
+          </div>
+          <p>Les modalités complètes d'exercice de vos droits sont décrites à la <a href="confidentialite.html#article-11">section 11 de la politique de confidentialité</a>.</p>
+        </section>
+
+      </article>
+    </div>
+  </main>
+
+  <footer>
+    <div class="container footer-line">
+      <span>SignalAi · signalai.fr — édité par FC-Invest SASU</span>
+      <div class="footer-links">
+        <a href="index.html">Accueil</a>
+        <a href="confidentialite.html">Confidentialité</a>
+        <a href="sous-traitants.html">Sous-traitants</a>
+        <a href="mentions-legales.html">Mentions légales</a>
+        <a href="mailto:contact@signalai.fr">Contact</a>
+      </div>
+    </div>
+  </footer>
+
+</body>
+</html>

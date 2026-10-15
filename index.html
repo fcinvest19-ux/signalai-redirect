@@ -2,16 +2,794 @@
 <html lang="fr">
 <head>
   <meta charset="UTF-8" />
-  <title>SignalAi devient OpportIA</title>
-  <meta name="robots" content="noindex" />
-  <link rel="canonical" href="https://opportia.fr/" />
-  <!-- S305.1 : signalai.fr → opportia.fr. Le JS conserve le chemin ; le meta refresh couvre les navigateurs sans JS. -->
-  <script>
-    location.replace('https://opportia.fr' + location.pathname + location.search + location.hash);
-  </script>
-  <meta http-equiv="refresh" content="0; url=https://opportia.fr/" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>SignalAi — Intelligence commerciale &amp; pipeline propriétaire</title>
+  <meta name="description" content="SignalAi détecte plus tôt les situations de transformation d'entreprise et les transforme en un pipeline commercial qui appartient à votre cabinet — configuré sur votre stratégie, vos comptes cibles et votre profil de client idéal." />
+  <link rel="canonical" href="https://signalai.fr/" />
+
+  <!-- Open Graph -->
+  <meta property="og:title" content="SignalAi — Intelligence commerciale &amp; pipeline propriétaire" />
+  <meta property="og:description" content="SignalAi détecte plus tôt les situations de transformation d'entreprise et les transforme en un pipeline commercial qui appartient à votre cabinet." />
+  <meta property="og:type" content="website" />
+  <meta property="og:url" content="https://signalai.fr/" />
+  <meta property="og:image" content="https://signalai.fr/logo-signalai.png" />
+  <meta property="og:locale" content="fr_FR" />
+
+  <!-- Twitter Card -->
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content="SignalAi — Intelligence commerciale &amp; pipeline propriétaire" />
+  <meta name="twitter:description" content="SignalAi détecte plus tôt les situations de transformation d'entreprise et les transforme en un pipeline commercial qui appartient à votre cabinet." />
+  <meta name="twitter:image" content="https://signalai.fr/logo-signalai.png" />
+  <style>
+    :root {
+      --bg:       #0f172a;
+      --panel:    #111827;
+      --panel-2:  #1e293b;
+      --line:     #334155;
+      --text:     #e2e8f0;
+      --muted:    #94a3b8;
+      --title:    #f1f5f9;
+      --accent:   #F05A1E;
+      --accent-2: #d94f19;
+      --primary:  #2563eb;
+      --ok:       #22c55e;
+      --max:      1120px;
+      --radius:   18px;
+      --shadow:   0 18px 40px rgba(0,0,0,.28);
+    }
+
+    * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; scroll-padding-top: 72px; }
+
+    body {
+      margin: 0;
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+      background:
+        radial-gradient(circle at top left,  rgba(240,90,30,.07),  transparent 30%),
+        radial-gradient(circle at 80% 20%,   rgba(37,99,235,.10),  transparent 22%),
+        var(--bg);
+      color: var(--text);
+      line-height: 1.55;
+    }
+
+    a { color: inherit; text-decoration: none; }
+
+    .container {
+      width: min(var(--max), calc(100% - 32px));
+      margin: 0 auto;
+    }
+
+    /* ── TOPBAR ─────────────────────────────────── */
+    .topbar {
+      position: sticky;
+      top: 0;
+      z-index: 20;
+      backdrop-filter: blur(12px);
+      background: rgba(15,23,42,.82);
+      border-bottom: 1px solid rgba(148,163,184,.12);
+    }
+
+    .topbar-inner {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 18px;
+      padding: 14px 0;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-weight: 700;
+      font-size: 16px;
+      color: var(--title);
+    }
+
+    .logo-img {
+      width: 42px;
+      height: 42px;
+      border-radius: 10px;
+      object-fit: cover;
+      flex-shrink: 0;
+    }
+
+    .nav {
+      display: flex;
+      align-items: center;
+      gap: 20px;
+      color: var(--muted);
+      font-size: 14px;
+    }
+
+    .nav a:hover { color: var(--text); transition: color .15s; }
+
+    /* ── BUTTONS ─────────────────────────────────── */
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      padding: 13px 22px;
+      border-radius: 10px;
+      border: 1px solid transparent;
+      font-weight: 600;
+      font-size: 15px;
+      transition: .18s ease;
+      cursor: pointer;
+      white-space: nowrap;
+    }
+
+    .btn-accent {
+      background: var(--accent);
+      color: white;
+      box-shadow: 0 8px 20px rgba(240,90,30,.28);
+    }
+    .btn-accent:hover { background: var(--accent-2); }
+
+    .btn-secondary {
+      background: rgba(31,41,55,.7);
+      border-color: rgba(148,163,184,.22);
+      color: var(--text);
+    }
+    .btn-secondary:hover { border-color: rgba(148,163,184,.44); }
+
+    .btn-sm { padding: 9px 16px; font-size: 13px; border-radius: 8px; }
+
+    /* ── HERO ────────────────────────────────────── */
+    .hero { padding: 64px 0 48px; }
+
+    .hero-grid {
+      display: grid;
+      grid-template-columns: 1.15fr .85fr;
+      gap: 28px;
+      align-items: stretch;
+    }
+
+    .hero-copy,
+    .hero-card,
+    .section-card,
+    .contact-card {
+      background: linear-gradient(180deg, rgba(17,24,39,.92), rgba(15,23,42,.96));
+      border: 1px solid rgba(148,163,184,.14);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+    }
+
+    .hero-copy { padding: 40px; }
+
+    .eyebrow {
+      display: inline-flex;
+      align-items: center;
+      padding: 6px 12px;
+      border-radius: 999px;
+      background: rgba(240,90,30,.12);
+      border: 1px solid rgba(240,90,30,.28);
+      color: #fed7aa;
+      font-size: 12px;
+      font-weight: 700;
+      letter-spacing: .03em;
+    }
+
+    h1 {
+      margin: 16px 0 14px;
+      font-size: clamp(24px, 3vw, 36px);
+      line-height: 1.15;
+      letter-spacing: -.02em;
+      color: var(--title);
+    }
+
+    h2 {
+      margin: 0 0 10px;
+      font-size: clamp(24px, 3vw, 36px);
+      letter-spacing: -.02em;
+      color: var(--title);
+    }
+
+    .lead {
+      margin: 0 0 24px;
+      color: var(--muted);
+      font-size: 17px;
+      line-height: 1.65;
+    }
+
+    .hero-actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+      margin-bottom: 24px;
+    }
+
+    .hero-meta {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+
+    .meta-pill {
+      padding: 8px 12px;
+      border-radius: 10px;
+      background: rgba(15,23,42,.85);
+      border: 1px solid rgba(148,163,184,.12);
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    /* ── HERO CARD ───────────────────────────────── */
+    .hero-card {
+      padding: 28px;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    .scorebox {
+      padding: 18px;
+      border-radius: 14px;
+      background: rgba(15,23,42,.82);
+      border: 1px solid rgba(148,163,184,.12);
+    }
+    .scorebox h3 { margin: 0 0 8px; font-size: 15px; color: var(--title); }
+    .scorebox p  { margin: 0; font-size: 14px; color: var(--muted); }
+
+    .mini-list { display: grid; gap: 10px; }
+
+    .mini-item {
+      display: flex;
+      gap: 12px;
+      align-items: flex-start;
+      padding: 12px 14px;
+      border-radius: 12px;
+      background: rgba(15,23,42,.82);
+      border: 1px solid rgba(148,163,184,.10);
+    }
+
+    .mini-badge {
+      min-width: 32px;
+      height: 32px;
+      border-radius: 9px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      background: rgba(240,90,30,.15);
+      color: #fed7aa;
+      font-size: 13px;
+      font-weight: 700;
+    }
+
+    .mini-item strong { color: var(--title); font-size: 14px; display: block; margin-bottom: 2px; }
+    .mini-item span   { font-size: 13px; color: var(--muted); }
+
+    /* ── SECTIONS ────────────────────────────────── */
+    .section { padding: 48px 0; }
+
+    .section-heading { max-width: 720px; margin-bottom: 28px; }
+    .section-heading p { margin: 0; color: var(--muted); font-size: 16px; }
+
+    .grid-3 { display: grid; grid-template-columns: repeat(3,1fr); gap: 18px; }
+    .grid-2 { display: grid; grid-template-columns: repeat(2,1fr); gap: 18px; }
+
+    .section-card { padding: 26px; }
+    .section-card h3 { margin: 0 0 10px; font-size: 18px; color: var(--title); }
+    .section-card p  { margin: 0; color: var(--muted); font-size: 15px; }
+
+    .checklist { margin: 0; padding: 0; list-style: none; display: grid; gap: 10px; }
+    .checklist li {
+      position: relative;
+      padding-left: 24px;
+      color: var(--muted);
+      font-size: 14px;
+    }
+    .checklist li::before {
+      content: "✓";
+      position: absolute;
+      left: 0;
+      color: var(--ok);
+      font-weight: 800;
+    }
+
+    /* ── CONTACT ─────────────────────────────────── */
+    .contact-card {
+      padding: 40px;
+      display: grid;
+      grid-template-columns: 1.2fr .8fr;
+      gap: 32px;
+      align-items: center;
+    }
+
+    .contact-left p { color: var(--muted); font-size: 16px; margin: 0 0 24px; }
+
+    .contact-box {
+      padding: 24px;
+      border-radius: 14px;
+      background: rgba(15,23,42,.82);
+      border: 1px solid rgba(148,163,184,.12);
+      text-align: center;
+    }
+
+    .contact-label {
+      color: var(--muted);
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: .08em;
+      margin-bottom: 6px;
+    }
+
+    .contact-value {
+      font-size: 15px;
+      font-weight: 600;
+      color: var(--title);
+      word-break: break-word;
+      margin-bottom: 16px;
+    }
+
+    /* ── FOOTER ──────────────────────────────────── */
+    footer { padding: 20px 0 36px; }
+
+    .footer-line {
+      padding-top: 18px;
+      border-top: 1px solid rgba(148,163,184,.12);
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: space-between;
+      gap: 10px;
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    /* ── RESPONSIVE ──────────────────────────────── */
+    @media (max-width: 980px) {
+      .hero-grid,
+      .contact-card,
+      .grid-3,
+      .grid-2 { grid-template-columns: 1fr; }
+
+      .hero-copy,
+      .hero-card,
+      .contact-card { padding: 24px; }
+    }
+
+    @media (max-width: 720px) {
+      .nav { display: none; }
+
+      .hero { padding-top: 36px; }
+
+      .hero-actions { flex-direction: column; }
+      .hero-actions .btn { width: 100%; }
+
+      .btn-sm { width: auto !important; }
+    }
+  </style>
 </head>
 <body>
-  <p>SignalAi devient OpportIA. Si la redirection ne se fait pas, rendez-vous sur <a href="https://opportia.fr/">opportia.fr</a>.</p>
+
+  <!-- ── TOPBAR ──────────────────────────────────────── -->
+  <header class="topbar">
+    <div class="container topbar-inner">
+      <a href="#top" class="brand" aria-label="SignalAi">
+        <img src="logo-signalai.png" alt="SignalAi" class="logo-img">
+        <span>SignalAi</span>
+      </a>
+      <nav class="nav" aria-label="Navigation principale">
+        <a href="#solution">Solution</a>
+        <a href="#pipeline">Votre pipeline</a>
+        <a href="#cas-usage">Cas d'usage</a>
+        <a href="#pilote">Pilote</a>
+        <a href="#contact">Contact</a>
+      </nav>
+      <a class="btn btn-accent btn-sm"
+         href="#pilote">
+        Échanger sur le programme pilote
+      </a>
+    </div>
+  </header>
+
+  <main id="top">
+
+    <!-- ── HERO ──────────────────────────────────────── -->
+    <section class="hero">
+      <div class="container hero-grid">
+
+        <div class="hero-copy">
+          <span class="eyebrow">SignalAi · Technologie d'intelligence commerciale — première verticale : le management de transition</span>
+          <h1>Détectez les situations de transformation avant qu'elles ne deviennent des urgences visibles. Et faites-en un pipeline commercial qui vous appartient.</h1>
+          <p class="lead">
+            SignalAi aide les cabinets de management de transition à identifier plus tôt
+            les signaux de transformation, les tensions organisationnelles et les trajectoires
+            critiques susceptibles de générer des missions encore invisibles au marché.
+          </p>
+          <p class="lead" style="font-weight:500; color:var(--text);">
+            La plupart des dispositifs de veille partent du flux mondial et vous déversent
+            des alertes. Nous faisons l'inverse : nous partons de votre stratégie commerciale,
+            et nous construisons un pipeline qui vous appartient.
+          </p>
+          <div class="hero-actions">
+            <a class="btn btn-accent" href="#pilote">
+              Découvrir le programme pilote
+            </a>
+            <a class="btn btn-secondary" href="#solution">Voir comment fonctionne SignalAi</a>
+          </div>
+          <div class="hero-meta">
+            <span class="meta-pill">Signaux faibles de transformation</span>
+            <span class="meta-pill">Lecture métier orientée EMT</span>
+            <span class="meta-pill">Sur-mesure : vos comptes, votre ICP</span>
+          </div>
+        </div>
+
+        <aside class="hero-card" aria-label="Proposition de valeur">
+          <div class="scorebox">
+            <h3>Pour qui ?</h3>
+            <p>Cabinets de management de transition souhaitant intervenir plus en amont,
+               sur des situations latentes plutôt qu'en concurrence frontale sur des missions
+               déjà ouvertes au marché.</p>
+          </div>
+          <div class="mini-list">
+            <div class="mini-item">
+              <span class="mini-badge">01</span>
+              <div>
+                <strong>Détecter</strong>
+                <span>Identifier les trajectoires de transformation avant qu'elles ne soient formalisées.</span>
+              </div>
+            </div>
+            <div class="mini-item">
+              <span class="mini-badge">02</span>
+              <div>
+                <strong>Interpréter</strong>
+                <span>Qualifier la situation selon sa pertinence EMT et son timing d'activation.</span>
+              </div>
+            </div>
+            <div class="mini-item">
+              <span class="mini-badge">03</span>
+              <div>
+                <strong>Engager</strong>
+                <span>Ouvrir une conversation stratégique au bon moment, avec le bon angle.</span>
+              </div>
+            </div>
+            <div class="mini-item">
+              <span class="mini-badge">04</span>
+              <div>
+                <strong>Capitaliser</strong>
+                <span>Chaque alerte traitée, chaque décision prise affine votre dispositif :
+                      le pipeline se construit avec l'usage.</span>
+              </div>
+            </div>
+          </div>
+        </aside>
+
+      </div>
+    </section>
+
+    <!-- ── PROBLÈME ───────────────────────────────────── -->
+    <section class="section" id="probleme">
+      <div class="container">
+        <div class="section-heading" style="max-width:860px;">
+          <h2>Le management de transition intervient encore trop souvent lorsque la crise est déjà visible.</h2>
+          <p>Quand un dirigeant appelle un cabinet EMT, le besoin est déjà formulé,
+             la fenêtre de décision se compte en jours et la concurrence entre cabinets est immédiate.
+             Mais une grande partie des situations qui justifieraient une intervention de transition
+             n'arrive jamais sous cette forme.</p>
+        </div>
+        <div class="grid-2">
+          <article class="section-card">
+            <h3>Des besoins qui restent latents</h3>
+            <p>Beaucoup d'entreprises ne savent pas encore qu'un manager de transition pourrait
+               les aider — ou n'ont pas formalisé la situation comme un besoin EMT.
+               Le risque est traité en interne, parfois trop tard.</p>
+          </article>
+          <article class="section-card">
+            <h3>Des trajectoires mal interprétées</h3>
+            <p>La veille traditionnelle détecte des événements isolés : nomination, levée,
+               carve-out, plan social. Elle interprète mal les trajectoires de transformation
+               qui se construisent sur plusieurs mois et révèlent une tension latente.</p>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <!-- ── NOUVEAU POSITIONNEMENT ─────────────────────── -->
+    <section class="section" id="positionnement">
+      <div class="container">
+        <div class="section-heading" style="max-width:860px;">
+          <h2>SignalAi ne détecte pas seulement des missions existantes. Il aide à faire émerger des conversations.</h2>
+          <p>Une alerte SignalAi n'est pas une mission ouverte. Elle révèle une situation
+             de transformation, une tension ou une trajectoire susceptible d'évoluer vers
+             un besoin EMT.</p>
+          <p style="margin-top:14px;">Le rôle du cabinet reste central : interpréter le signal,
+             choisir le bon timing, activer le bon réseau et initier la bonne conversation.
+             SignalAi augmente le discernement commercial — il ne remplace ni le réseau,
+             ni le jugement, ni la crédibilité métier.</p>
+          <p style="margin-top:14px;">Et ce que SignalAi construit au fil des alertes — vos critères,
+             vos comptes, vos verdicts — reste à vous : c'est votre pipeline, pas un flux partagé.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- ── SOLUTION ───────────────────────────────────── -->
+    <section class="section" id="solution">
+      <div class="container">
+        <div class="section-heading" style="display:flex; align-items:flex-start; gap:28px;">
+          <img src="logo-signalai.png" alt="SignalAi"
+               style="width:108px; height:108px; border-radius:20px; object-fit:cover; flex-shrink:0;">
+          <div>
+            <h2>Une lecture métier des trajectoires de transformation</h2>
+            <p>SignalAi articule des sources publiques, institutionnelles et sectorielles
+               selon une grille de lecture orientée management de transition. L'objectif
+               n'est pas de produire plus d'information, mais de faire remonter moins de
+               situations, mieux interprétées et plus activables — sélectionnées selon votre
+               stratégie : vos secteurs, vos tailles d'entreprise, vos angles, vos comptes
+               prioritaires.</p>
+          </div>
+        </div>
+        <div class="grid-3">
+          <article class="section-card">
+            <h3>Détecter</h3>
+            <p>SignalAi identifie des situations de transformation à partir de sources publiques,
+               institutionnelles et sectorielles : événements, trajectoires, tensions
+               organisationnelles, dérives de programme.</p>
+          </article>
+          <article class="section-card">
+            <h3>Interpréter</h3>
+            <p>Chaque situation est qualifiée selon sa pertinence EMT, son niveau d'urgence,
+               son angle d'approche probable et son timing d'activation.</p>
+          </article>
+          <article class="section-card">
+            <h3>Engager</h3>
+            <p>Les situations activables sont restituées sous forme d'alertes ou de synthèses
+               exploitables, conçues pour alimenter une conversation stratégique avec le bon
+               interlocuteur.</p>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <!-- ── VOTRE PIPELINE (S262) ──────────────────────── -->
+    <section class="section" id="pipeline">
+      <div class="container">
+        <div class="section-heading" style="max-width:860px;">
+          <h2>Un dispositif construit sur votre stratégie — pas un flux partagé.</h2>
+          <p>Le Setup n'installe pas un logiciel : il construit votre pipeline. Un atelier
+             stratégie &amp; comptes cibles formalise votre profil de client idéal (ICP) et
+             votre portefeuille de comptes nommés ; le dispositif est ensuite calibré sur
+             vos critères — et le radar travaille sur deux voies.</p>
+        </div>
+        <div class="grid-2">
+          <article class="section-card">
+            <h3>Vos comptes nommés</h3>
+            <p>Votre portefeuille de comptes cibles sous surveillance prioritaire. Quand une
+               situation de transformation devient lisible chez l'un d'eux, vous le savez —
+               avec l'angle d'approche.</p>
+          </article>
+          <article class="section-card">
+            <h3>Le marché caché, filtré par votre ICP</h3>
+            <p>Le flux mondial reste — mais filtré par votre profil de client idéal. Il fait
+               remonter l'inconnu qui ressemble à ce que vous savez vendre : les entreprises
+               que votre réseau ne voit pas.</p>
+          </article>
+        </div>
+        <p style="max-width:860px; margin:24px 0 0; color:var(--muted); font-size:16px;">
+          Ce qui s'accumule au fil du pilote puis de l'abonnement vous appartient : la
+          cartographie de vos comptes, vos sources dédiées, vos règles de scoring et de
+          lecture, vos playbooks d'approche, et votre historique de décisions.</p>
+        <blockquote style="max-width:860px; margin:28px 0 0; padding:22px 26px; border-left:3px solid var(--accent); background:rgba(240,90,30,.06); border-radius:8px; color:var(--title); font-size:17px; font-style:italic; line-height:1.6;">
+          Deux cabinets ne produisent jamais le même pipeline. Il est non-réplicable
+          par construction.
+        </blockquote>
+      </div>
+    </section>
+
+    <!-- ── EXEMPLE D'ALERTE ───────────────────────────── -->
+    <section class="section" id="exemple">
+      <div class="container">
+        <div class="section-heading">
+          <h2>Exemple de situation détectée</h2>
+          <p>Une illustration anonymisée du type de situation activable révélée par SignalAi.</p>
+        </div>
+        <article class="section-card"
+                 style="max-width:720px; margin:0 auto; border-color:rgba(240,90,30,.32); box-shadow:0 18px 40px rgba(240,90,30,.10);">
+          <div style="display:flex; align-items:center; justify-content:space-between; gap:14px; margin-bottom:18px; flex-wrap:wrap;">
+            <strong style="color:var(--title); font-size:16px;">Entreprise industrielle — Pays de la Loire</strong>
+            <span class="eyebrow">Situation · Activable</span>
+          </div>
+          <div class="mini-list">
+            <div class="mini-item">
+              <span class="mini-badge">!</span>
+              <div>
+                <strong>Situation détectée</strong>
+                <span>Remplacement du directeur général après une période de tensions opérationnelles
+                      et de réorganisation interne.</span>
+              </div>
+            </div>
+            <div class="mini-item">
+              <span class="mini-badge">↗</span>
+              <div>
+                <strong>Lecture de transformation</strong>
+                <span>Trajectoire potentiellement favorable à une mission de transition autour de
+                      la stabilisation managériale, de la performance industrielle ou de la conduite
+                      du changement. Le besoin n'est pas encore exprimé sur le marché.</span>
+              </div>
+            </div>
+            <div class="mini-item">
+              <span class="mini-badge">→</span>
+              <div>
+                <strong>Conversation à initier</strong>
+                <span>Approche du président ou du DRH avec un angle « sécurisation
+                      de la transition de gouvernance », à calibrer selon l'historique du cabinet
+                      avec l'entreprise.</span>
+              </div>
+            </div>
+          </div>
+        </article>
+      </div>
+    </section>
+
+    <!-- ── CAS D'USAGE ────────────────────────────────── -->
+    <section class="section" id="cas-usage">
+      <div class="container">
+        <div class="section-heading">
+          <h2>Familles de situations de transformation</h2>
+          <p>Quelques typologies de trajectoires que SignalAi fait remonter pour alimenter
+             le discernement d'un cabinet EMT.</p>
+        </div>
+        <div class="grid-2">
+          <article class="section-card">
+            <h3>Changements de direction</h3>
+            <ul class="checklist">
+              <li>Départ ou remplacement d'un dirigeant clé</li>
+              <li>Réorganisation de gouvernance</li>
+              <li>Création d'un poste de transformation</li>
+            </ul>
+          </article>
+          <article class="section-card">
+            <h3>Transformations et crises</h3>
+            <ul class="checklist">
+              <li>Crise ERP ou transformation SI critique</li>
+              <li>Dérapage de programme stratégique</li>
+              <li>Tensions opérationnelles ou supply chain</li>
+            </ul>
+          </article>
+          <article class="section-card">
+            <h3>Évolutions capitalistiques</h3>
+            <ul class="checklist">
+              <li>Fusion, carve-out, intégration post-acquisition</li>
+              <li>Rationalisation d'activités</li>
+              <li>Besoin de sécurisation managériale</li>
+            </ul>
+          </article>
+          <article class="section-card">
+            <h3>Pressions organisationnelles</h3>
+            <ul class="checklist">
+              <li>Réduction de coûts ou recherche de productivité</li>
+              <li>Tensions RH et turnover</li>
+              <li>Changement de modèle opérationnel</li>
+            </ul>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <!-- ── OBJECTION EXCLUSIVITÉ ──────────────────────── -->
+    <section class="section" id="exclusivite">
+      <div class="container">
+        <div class="section-heading" style="max-width:860px;">
+          <h2>Même lorsqu'un signal est visible par plusieurs acteurs, tous les cabinets ne sont pas égaux face à ce signal.</h2>
+          <p>Un pipeline configuré sur vos comptes et vos critères est, par construction,
+             impossible à répliquer : deux cabinets ne produisent jamais le même.</p>
+          <p style="margin-top:14px;">Une alerte SignalAi n'est pas une mission ouverte. Le client n'est souvent pas
+             encore en recherche active. Ce qui fait la différence entre deux cabinets recevant
+             une même alerte tient à la lecture, au timing et à la relation.</p>
+        </div>
+        <div class="grid-3">
+          <article class="section-card">
+            <h3>Historique &amp; réseau</h3>
+            <p>L'antériorité avec le client, la qualité de la relation et le réseau interne
+               du cabinet déterminent qui peut crédiblement initier la conversation.</p>
+          </article>
+          <article class="section-card">
+            <h3>Crédibilité métier</h3>
+            <p>La capacité à parler la même langue que le dirigeant — secteur, fonction,
+               type de transformation — pèse plus que la rapidité de réaction.</p>
+          </article>
+          <article class="section-card">
+            <h3>Timing &amp; angle</h3>
+            <p>Choisir le bon moment psychologique pour le dirigeant, et le bon angle d'entrée
+               selon la situation, conditionne l'émergence d'une mission.</p>
+          </article>
+        </div>
+        <blockquote style="max-width:860px; margin:28px 0 0; padding:22px 26px; border-left:3px solid var(--accent); background:rgba(240,90,30,.06); border-radius:8px; color:var(--title); font-size:17px; font-style:italic; line-height:1.6;">
+          La valeur ne réside pas uniquement dans l'information brute, mais dans la capacité
+          à transformer une situation latente en conversation stratégique.
+        </blockquote>
+      </div>
+    </section>
+
+    <!-- ── MARCHÉ EMT ─────────────────────────────────── -->
+    <section class="section" id="marche">
+      <div class="container">
+        <div class="section-heading" style="max-width:860px;">
+          <h2>Un marché qui évolue au-delà de la crise.</h2>
+          <p>Le management de transition ne se limite plus au remplacement d'urgence ou au
+             redressement. Il accompagne désormais des transformations complexes, des programmes
+             stratégiques, des situations de croissance, de structuration, de sécurisation
+             ou d'accélération opérationnelle.</p>
+          <p style="margin-top:14px;">SignalAi accompagne cette évolution en permettant aux
+             cabinets EMT d'intervenir plus tôt dans le cycle de décision — avant que la situation
+             ne se traduise en appel d'offres ouvert au marché.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- ── PROGRAMME PILOTE ───────────────────────────── -->
+    <section class="section" id="pilote">
+      <div class="container">
+        <div class="section-heading" style="max-width:860px;">
+          <h2>Le pilote ne sert pas à inventer le produit, mais à calibrer la lecture métier du cabinet.</h2>
+          <p>SignalAi est en production. Le pilote sert à ajuster la grille d'interprétation
+             aux signaux qui comptent réellement pour votre cabinet, à votre stade et sur votre
+             territoire — pas à valider la faisabilité technique.</p>
+        </div>
+        <div class="section-card" style="max-width:720px; margin:0 0 24px;">
+          <h3 style="margin-bottom:14px;">Ce qui se calibre pendant le pilote</h3>
+          <ul class="checklist" style="grid-template-columns:1fr 1fr; display:grid; gap:12px 24px;">
+            <li>Signaux prioritaires</li>
+            <li>Seuils de scoring</li>
+            <li>Sources pertinentes</li>
+            <li>Règles de routage</li>
+            <li>Retours terrain</li>
+            <li>Mesure de la valeur</li>
+          </ul>
+        </div>
+        <p style="max-width:720px; margin:0 0 24px; color:var(--muted); font-size:16px;">
+          Le bilan de pilote se lit en métriques de pipeline : comptes sous surveillance,
+          taux d'activation des signaux, opportunités ouvertes, conversion.
+          On ne prolonge que sur des résultats réels.</p>
+        <a class="btn btn-accent"
+           href="mailto:contact@signalai.fr?subject=Pilote%20SignalAi">
+          Échanger sur le programme pilote
+        </a>
+      </div>
+    </section>
+
+    <!-- ── CONTACT ────────────────────────────────────── -->
+    <section class="section" id="contact">
+      <div class="container">
+        <div class="contact-card">
+          <div class="contact-left">
+            <h2>Échanger sur SignalAi</h2>
+            <p>Vous souhaitez explorer comment SignalAi peut aider votre cabinet à intervenir
+               plus en amont, sur des situations encore invisibles au marché ? Prenons un temps
+               d'échange sans engagement. L'alerte est le sous-produit. Le pipeline est le
+               produit — et il est à vous : cadrons ensemble le vôtre.</p>
+            <a class="btn btn-accent"
+               href="mailto:contact@signalai.fr?subject=Pilote%20SignalAi">
+              Échanger sur le programme pilote
+            </a>
+          </div>
+          <div class="contact-box">
+            <div class="contact-label">Contact direct</div>
+            <div class="contact-value">
+              <a href="mailto:contact@signalai.fr">contact@signalai.fr</a>
+            </div>
+            <div class="contact-label" style="margin-top:16px;">Site web</div>
+            <div class="contact-value" style="margin-bottom:0;">signalai.fr</div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- ── FOOTER ─────────────────────────────────────── -->
+  <footer>
+    <div class="container footer-line">
+      <span>SignalAi · signalai.fr — édité par FC-Invest SASU</span>
+      <span style="display:flex; gap:18px; flex-wrap:wrap;">
+        <a href="confidentialite.html" style="color:var(--muted);">Confidentialité</a>
+        <a href="sous-traitants.html" style="color:var(--muted);">Sous-traitants</a>
+        <a href="mentions-legales.html" style="color:var(--muted);">Mentions légales</a>
+        <a href="mailto:contact@signalai.fr" style="color:var(--muted);">contact@signalai.fr</a>
+      </span>
+    </div>
+  </footer>
+
 </body>
 </html>

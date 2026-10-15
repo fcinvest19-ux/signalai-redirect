@@ -1,0 +1,1510 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Signalai — Onboarding Client EMT</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script crossorigin src="https://unpkg.com/react@18/umd/react.development.js"></script>
+  <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+  <style>
+    body { background: #0f172a; color: #e2e8f0; font-family: system-ui, sans-serif; }
+    .sql-block { background: #1e293b; border: 1px solid #334155; border-radius: 8px;
+      font-family: 'Courier New', monospace; font-size: 12.5px; line-height: 1.65;
+      padding: 16px; overflow-x: auto; white-space: pre; max-height: 480px; overflow-y: auto; }
+    .chip { display: inline-flex; align-items: center; padding: 5px 12px; border-radius: 999px;
+      font-size: 12px; font-weight: 500; cursor: pointer; user-select: none; transition: all 0.15s; }
+    .chip-on  { background: #1d4ed8; color: white; }
+    .chip-off { background: #1e293b; color: #94a3b8; border: 1px solid #334155; }
+    .chip:hover { opacity: 0.85; }
+    input[type="text"], input[type="email"], input[type="number"], select {
+      background: #1e293b; border: 1px solid #334155; border-radius: 6px;
+      color: #e2e8f0; padding: 8px 12px; width: 100%; outline: none; }
+    input:focus, select:focus { border-color: #2563eb; }
+    input[type="number"]::-webkit-inner-spin-button,
+    input[type="number"]::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
+    input[type="number"] { -moz-appearance: textfield; }
+    select option { background: #1e293b; }
+    .card { background: #1e293b; border: 1px solid #334155; border-radius: 10px; }
+    .card-sel { border-color: #2563eb !important; background: rgba(30,58,138,0.15) !important; }
+    .tag { display: inline-block; padding: 2px 7px; border-radius: 4px; font-size: 10.5px; font-weight: 600; }
+    ::-webkit-scrollbar { width: 5px; height: 5px; }
+    ::-webkit-scrollbar-track { background: #0f172a; }
+    ::-webkit-scrollbar-thumb { background: #334155; border-radius: 3px; }
+    label.lbl { font-size: 12.5px; color: #94a3b8; display: block; margin-bottom: 5px; font-weight: 500; }
+    .btn { padding: 9px 22px; border-radius: 8px; font-weight: 600; cursor: pointer; border: none;
+      font-size: 14px; transition: all 0.15s; }
+    .btn-p { background: #2563eb; color: white; }
+    .btn-p:hover { background: #1d4ed8; }
+    .btn-p:disabled { background: #374151; color: #6b7280; cursor: not-allowed; }
+    .btn-s { background: #1e293b; color: #e2e8f0; border: 1px solid #334155; }
+    .btn-s:hover { border-color: #475569; }
+    .btn-sm { padding: 5px 13px; font-size: 12.5px; border-radius: 6px; }
+    .btn-del { background: rgba(127,29,29,0.15); color: #f87171; border: 1px solid rgba(127,29,29,0.5);
+      padding: 4px 11px; border-radius: 5px; font-size: 12px; cursor: pointer; }
+    .btn-del:hover { background: rgba(127,29,29,0.3); }
+    .step-done   { background: #16a34a; color: white; }
+    .step-active { background: #2563eb; color: white; }
+    .step-idle   { background: #1e293b; color: #64748b; border: 1px solid #334155; }
+    h2 { font-size: 19px; font-weight: 700; color: #f1f5f9; }
+    h3 { font-size: 13px; font-weight: 600; color: #94a3b8; text-transform: uppercase;
+      letter-spacing: 0.06em; margin-bottom: 10px; }
+    .fg { margin-bottom: 18px; }
+  </style>
+</head>
+<body>
+<div id="root"></div>
+<script type="text/babel">
+const { useState, useMemo, useCallback } = React;
+
+const DEFAULT_EXCLUDE_GLOBAL = 'podcast|webinaire|conférence|événement|agenda|interview|recette|horoscope|météo|cinéma|concert|sport|liquidation judiciaire';
+
+/* ══════════════════════════════════════════════
+   DONNÉES DE RÉFÉRENCE
+══════════════════════════════════════════════ */
+
+const GEO_SCOPES = [
+  {value:'national',      flag:'🇫🇷', label:'France'},
+  {value:'Belgique',      flag:'🇧🇪', label:'Belgique'},
+  {value:'Suisse',        flag:'🇨🇭', label:'Suisse'},
+  {value:'UK',            flag:'🇬🇧', label:'Royaume-Uni'},
+  {value:'international', flag:'🌍', label:'International'},
+];
+
+const REGIONS = [
+  'Auvergne-Rhône-Alpes','Bourgogne-Franche-Comté','Bretagne','Centre-Val de Loire',
+  'Corse','Grand Est','Hauts-de-France','Île-de-France','Normandie',
+  'Nouvelle-Aquitaine','Occitanie','Pays de la Loire','Provence-Alpes-Côte d\'Azur',
+];
+
+// Taxonomie sectorielle simplifiée (NACE/INSEE consolidé) pour exclusions Gold/Platinum
+const SECTORS_NACE = [
+  'Industrie manufacturière',
+  'Construction / BTP',
+  'Commerce / Distribution',
+  'Transport / Logistique',
+  'Information / Communication / Numérique',
+  'Finance / Assurance',
+  'Immobilier',
+  'Services aux entreprises (conseil, juridique…)',
+  'Santé / Action sociale',
+  'Enseignement / Formation',
+  'Hôtellerie / Restauration',
+  'Énergie / Environnement',
+  'Agriculture / Agroalimentaire / Pêche',
+  'Administration publique',
+  'Arts / Spectacles / Loisirs',
+];
+
+const WEEKLY_DAYS = [
+  {value:'monday',    label:'Lundi'},
+  {value:'tuesday',   label:'Mardi'},
+  {value:'wednesday', label:'Mercredi'},
+  {value:'thursday',  label:'Jeudi'},
+  {value:'friday',    label:'Vendredi'},
+  {value:'saturday',  label:'Samedi'},
+  {value:'sunday',    label:'Dimanche'},
+];
+
+const SOURCES = [
+  // ── BRONZE ──
+  {id:'API_BODACC',              name:'BODACC Annonces légales',                                    type:'HTTP_API', cat:'API publiques',           geo:'national',          pay:false, pkg:'Bronze', on:true},
+  {id:'RSS_GNEWS_DIRIGEANTS',    name:'Google News — Nominations / Départs dirigeants',            type:'RSS',      cat:'Google News',             geo:'national',          pay:true,  pkg:'Bronze', on:true},
+  {id:'RSS_GNEWS_PROC_COLL',     name:'Google News — Procédures collectives / Défaillances',       type:'RSS',      cat:'Google News',             geo:'national',          pay:true,  pkg:'Bronze', on:true},
+  {id:'RSS_GNEWS_RESTRUCTURATION',name:'Google News — Restructuration / M&A',                      type:'RSS',      cat:'Google News',             geo:'national',          pay:true,  pkg:'Bronze', on:true},
+  {id:'RSS_JDE_PDL',             name:'Journal des Entreprises — Pays de la Loire',                type:'RSS',      cat:'Presse régionale',        geo:'national',          pay:false, pkg:'Bronze', on:true},
+  {id:'RSS_CAPITAL_ENTREP',      name:'Capital — Entreprises & Marchés',                           type:'RSS',      cat:'Presse éco nationale',    geo:'national',          pay:false, pkg:'Bronze', on:true},
+  {id:'RSS_LATRIBUNE',           name:'La Tribune',                                                 type:'RSS',      cat:'Presse éco nationale',    geo:'national',          pay:false, pkg:'Bronze', on:true},
+  // ── SILVER ──
+  {id:'API_BOAMP',               name:'BOAMP — Marchés Publics Transformation',                    type:'HTTP_API', cat:'API publiques',           geo:'national',          pay:false, pkg:'Silver', on:true},
+  {id:'RSS_GNEWS_CRISE',         name:'Google News — Crises entreprise / Cyber',                  type:'RSS',      cat:'Google News',             geo:'national',          pay:true,  pkg:'Silver', on:true},
+  {id:'RSS_GNEWS_TRANSFO_SI',    name:'Google News — Transformation SI / ERP',                    type:'RSS',      cat:'Google News',             geo:'national',          pay:true,  pkg:'Silver', on:true},
+  {id:'RSS_JDE_BRETAGNE',        name:'Journal des Entreprises — Bretagne',                        type:'RSS',      cat:'Presse régionale',        geo:'Bretagne',          pay:false, pkg:'Silver', on:true},
+  {id:'RSS_JDE_FRANCE',          name:"Journal des Entreprises — Édition France",                  type:'RSS',      cat:'Presse régionale',        geo:'national',          pay:false, pkg:'Silver', on:true},
+  {id:'RSS_JDE_NORMANDIE',       name:'Journal des Entreprises — Normandie',                       type:'RSS',      cat:'Presse régionale',        geo:'Normandie',         pay:false, pkg:'Silver', on:true},
+  {id:'RSS_JDE_NOUV_AQUIT',      name:"Journal des Entreprises — Nouvelle-Aquitaine",              type:'RSS',      cat:'Presse régionale',        geo:'Nouvelle-Aquitaine',pay:false, pkg:'Silver', on:true},
+  {id:'RSS_FRENCHWEB',           name:'FrenchWeb',                                                  type:'RSS',      cat:'Presse tech/innovation',  geo:'national',          pay:false, pkg:'Silver', on:true},
+  {id:'RSS_MADDYNESS',           name:'Maddyness',                                                  type:'RSS',      cat:'Presse tech/innovation',  geo:'national',          pay:false, pkg:'Silver', on:true},
+  {id:'RSS_MONDE_INFO',          name:'Le Monde Informatique — Business',                          type:'RSS',      cat:'Presse tech/innovation',  geo:'national',          pay:false, pkg:'Silver', on:true},
+  {id:'RSS_ZDNET_FR',            name:'ZDNet France',                                               type:'RSS',      cat:'Presse tech/innovation',  geo:'national',          pay:false, pkg:'Silver', on:true},
+  {id:'RSS_FRANCE24_BIZ',        name:'France 24 — Business',                                      type:'RSS',      cat:'Presse éco nationale',    geo:'international',     pay:false, pkg:'Silver', on:true},
+  {id:'RSS_LEMONDE_ECO',         name:'Le Monde — Économie',                                       type:'RSS',      cat:'Presse éco nationale',    geo:'national',          pay:true,  pkg:'Silver', on:true},
+  {id:'RSS_PRIVATE_EQUITY',      name:'Private Equity Magazine',                                   type:'RSS',      cat:'Finance/M&A',             geo:'national',          pay:false, pkg:'Silver', on:true},
+  {id:'RSS_AMF_FR',              name:'AMF France — Flux RSS',                                     type:'RSS',      cat:'Régulateurs',             geo:'national',          pay:false, pkg:'Silver', on:true},
+  {id:'RSS_ECO_GOUV',            name:'economie.gouv.fr — Actualités',                             type:'RSS',      cat:'Régulateurs',             geo:'national',          pay:false, pkg:'Silver', on:true},
+  // ── GOLD ──
+  {id:'APIFY_DECIDEURS_CF_DAF',  name:'Decideurs CF — DAF Corner',                                type:'APIFY',    cat:'Décideurs CF/M&A',        geo:'national',          pay:false, pkg:'Gold',   on:true},
+  {id:'APIFY_DECIDEURS_CF_MA',   name:'Decideurs CF — Fusions Acquisitions',                      type:'APIFY',    cat:'Décideurs CF/M&A',        geo:'national',          pay:false, pkg:'Gold',   on:true},
+  {id:'APIFY_DECIDEURS_CF_RESTR',name:'Decideurs CF — Restructuring',                             type:'APIFY',    cat:'Décideurs CF/M&A',        geo:'national',          pay:false, pkg:'Gold',   on:true},
+  {id:'API_FUSACQ_COM',          name:'Fusacq — Actualité M&A Internationale',                    type:'HTTP_API', cat:'Décideurs CF/M&A',        geo:'international',     pay:false, pkg:'Gold',   on:false},
+  {id:'APIFY_DECIDEURS_RH',      name:'Decideurs RH — Nominations',                               type:'APIFY',    cat:'Décideurs RH',            geo:'national',          pay:false, pkg:'Gold',   on:true},
+  {id:'API_FUSACQ_FR',           name:'Fusacq — Actualité M&A France',                            type:'HTTP_API', cat:'Finance/M&A',             geo:'national',          pay:false, pkg:'Gold',   on:false},
+  {id:'APIFY_CFNEWS_LBO',        name:'CFnews — LBO',                                             type:'APIFY',    cat:'Finance/M&A',             geo:'national',          pay:false, pkg:'Gold',   on:false}, // DÉPRÉCIÉ S-168 → remplacé par RSS_CFNEWS_LBO
+  {id:'APIFY_CFNEWS_MA',         name:'CFnews — M&A',                                             type:'APIFY',    cat:'Finance/M&A',             geo:'national',          pay:false, pkg:'Gold',   on:false}, // DÉPRÉCIÉ S-168 → remplacé par RSS_CFNEWS_MA
+  {id:'RSS_SOI_PDL_01',          name:'Solutions Ouest Implantation',                              type:'RSS',      cat:'Institutionnels régionaux',geo:'Pays de la Loire',  pay:false, pkg:'Gold',   on:true},
+  {id:'NL_CCI_PDL_44',           name:'Newsletter CCI — Nantes Saint Nazaire',                    type:'NL',       cat:'Newsletters',             geo:'Pays de la Loire',  pay:false, pkg:'Gold',   on:true},
+  {id:'NL_CCI_PDL_49',           name:'Newsletter CCI — Maine et Loire',                          type:'NL',       cat:'Newsletters',             geo:'Pays de la Loire',  pay:false, pkg:'Gold',   on:true},
+  {id:'RSS_FT_COMPANIES',        name:'Financial Times — Companies',                               type:'RSS',      cat:'Presse internationale',   geo:'international',     pay:true,  pkg:'Gold',   on:true},
+  // ── CFNEWS RSS (S-168) — 13 flux officiels, tier éditorial Bronze/Silver/Gold ──
+  {id:'RSS_CFNEWS_ACTU',         name:"CFNEWS : L'actualité",                                     type:'RSS',      cat:'Presse éco nationale',    geo:'national',          pay:false, pkg:'Bronze', on:true},
+  {id:'RSS_CFNEWS_GEN',          name:'CFNEWS : Marché Général',                                  type:'RSS',      cat:'Presse éco nationale',    geo:'national',          pay:false, pkg:'Bronze', on:false},
+  {id:'RSS_CFNEWS_ALERTES',      name:'CFNEWS : Les alertes de CFNEWS',                           type:'RSS',      cat:'Presse éco nationale',    geo:'national',          pay:false, pkg:'Bronze', on:true}, // S-170 a) 16/6 : NON redondant ACTU (scoops LBO exclusifs vérifiés) → ré-activé
+  {id:'RSS_CFNEWS_CAP_DEV',      name:'CFNEWS : Capital développement',                           type:'RSS',      cat:'Finance/M&A',             geo:'national',          pay:false, pkg:'Silver', on:false},
+  {id:'RSS_CFNEWS_CAP_INNOV',    name:'CFNEWS : Capital innovation',                              type:'RSS',      cat:'Finance/M&A',             geo:'national',          pay:false, pkg:'Silver', on:false},
+  {id:'RSS_CFNEWS_INTERNATIONAL',name:'CFNEWS : International',                                   type:'RSS',      cat:'Presse internationale',   geo:'international',     pay:false, pkg:'Silver', on:false},
+  {id:'RSS_CFNEWS_NOMINATIONS',  name:'CFNEWS : Nominations',                                     type:'RSS',      cat:'RH/Emploi cadres',        geo:'national',          pay:false, pkg:'Silver', on:false},
+  {id:'RSS_CFNEWS_FINANCE_RH',   name:"CFNEWS : Offres d'emploi du Corporate Finance",            type:'RSS',      cat:'RH/Emploi cadres',        geo:'national',          pay:false, pkg:'Silver', on:false},
+  {id:'RSS_CFNEWS_TECH',         name:'CFNEWS : Tech',                                            type:'RSS',      cat:'Presse tech/innovation',  geo:'national',          pay:false, pkg:'Silver', on:false},
+  {id:'RSS_CFNEWS_LBO',          name:'CFNEWS : LBO',                                             type:'RSS',      cat:'Finance/M&A',             geo:'national',          pay:false, pkg:'Gold',   on:false},
+  {id:'RSS_CFNEWS_EXCLU',        name:'CFNEWS : Exclusif CFNEWS',                                 type:'RSS',      cat:'Finance/M&A',             geo:'national',          pay:false, pkg:'Gold',   on:false},
+  {id:'RSS_CFNEWS_MA',           name:'CFNEWS : M&A Corporate',                                   type:'RSS',      cat:'Finance/M&A',             geo:'national',          pay:false, pkg:'Gold',   on:false},
+  {id:'RSS_CFNEWS_RETOURNEMENT', name:'CFNEWS : Retournement',                                    type:'RSS',      cat:'Finance/M&A',             geo:'national',          pay:false, pkg:'Gold',   on:false},
+  // ── EN COURS DE QUALIFICATION (sans package) ──
+  {id:'API_INPI_RNE',            name:'INPI RNE — Registre National Entreprises',                 type:'HTTP_API', cat:'API publiques',           geo:'national',          pay:false, pkg:null,     on:false},
+  {id:'NL_CFODIVE_DAILY',        name:'CFO Dive — Daily Dive',                                    type:'NL',       cat:'Newsletters',             geo:'international',     pay:false, pkg:null,     on:false},
+  {id:'NL_CHALLENGES_AUTO',      name:'Challenges — Automobile',                                  type:'NL',       cat:'Newsletters',             geo:'national',          pay:false, pkg:null,     on:false},
+  {id:'NL_CHALLENGES_ECO',       name:'Challenges — Économie',                                    type:'NL',       cat:'Newsletters',             geo:'national',          pay:false, pkg:null,     on:false},
+  {id:'NL_CIODIVE_DAILY',        name:'CIO Dive — Daily Dive',                                    type:'NL',       cat:'Newsletters',             geo:'international',     pay:false, pkg:null,     on:false},
+  {id:'NL_CSO_SECURITY',         name:'CSO Security Leadership',                                  type:'NL',       cat:'Newsletters',             geo:'international',     pay:false, pkg:null,     on:false},
+  {id:'NL_HRDIVE_DAILY',         name:'HR Dive — Daily Dive',                                     type:'NL',       cat:'Newsletters',             geo:'international',     pay:false, pkg:null,     on:false},
+  {id:'NL_SUPPLYCHAINDIVE_DAILY',name:'Supply Chain Dive — Daily Dive',                           type:'NL',       cat:'Newsletters',             geo:'international',     pay:false, pkg:null,     on:false},
+  {id:'NL_USINEDIGITALE_IA',     name:'Usine Digitale — IA Insider',                              type:'NL',       cat:'Newsletters',             geo:'national',          pay:false, pkg:null,     on:false},
+  {id:'NL_USINENOUVELLE_MGMT',   name:'Usine Nouvelle — Economie Sociale et Management',          type:'NL',       cat:'Newsletters',             geo:'national',          pay:false, pkg:null,     on:false},
+];
+
+const SIGNALS = [
+  {sid:'S01_EXEC_DEPART',    label:'Départ / remplacement de dirigeant clé',          cat:'Gouvernance',      icon:'👤'},
+  {sid:'S02_TRANSF_LEADER',  label:'Création de poste direction transformation',       cat:'Gouvernance',      icon:'🎯'},
+  {sid:'S03_GOV_TENSION',    label:'Tensions de gouvernance / Réorganisation',         cat:'Gouvernance',      icon:'⚠️'},
+  {sid:'S04_ERP_CRISE',      label:'Crise ERP / Go-live difficile',                   cat:'Transformation IT',icon:'💻'},
+  {sid:'S05_PROG_DERAPE',    label:'Dérapage de programme de transformation',          cat:'Transformation IT',icon:'🔥'},
+  {sid:'S06_CYBER',          label:'Incident cyber / Crise sécurité',                 cat:'Transformation IT',icon:'🔒'},
+  {sid:'S07_SI_CRITIQUE',    label:'Impasse système métier critique (LIMS…)',          cat:'Transformation IT',icon:'🖥️'},
+  {sid:'S08_SUPPLY_DEGRAD',  label:'Dégradation service / Supply chain',               cat:'Opérations',       icon:'🏭'},
+  {sid:'S09_COST_REDUC',     label:'Plan de réduction de coûts / Productivité',        cat:'Opérations',       icon:'📉'},
+  {sid:'S10_CLIENT_CRISE',   label:'Crise de livraison client',                        cat:'Opérations',       icon:'🚨'},
+  {sid:'S11_MA_PMI',         label:'Fusion / Carve-out / Intégration post-acquisition',cat:'Finance / M&A',   icon:'🏢'},
+  {sid:'S12_DUE_DILIG',      label:'Due diligence / Rationalisation portefeuille',     cat:'Finance / M&A',   icon:'🔍'},
+  {sid:'S13_CASH_TENSION',   label:'Tension trésorerie / Plan de sauvegarde',          cat:'Finance / M&A',   icon:'⚖️'},
+  {sid:'S14_TURNOVER',       label:'Turnover élevé / Difficulté recrutement',          cat:'Organisation / RH',icon:'👥'},
+  {sid:'S15_MODELE_OPS',     label:'Changement modèle opérationnel (Agile/Lean…)',     cat:'Organisation / RH',icon:'🔄'},
+];
+
+const PKGS_SET = ['Bronze', 'Silver', 'Gold'];
+
+function srcForPkg(pkg) {
+  if (pkg === 'Bronze') return SOURCES.filter(s => s.pkg === 'Bronze' && s.on).map(s => s.id);
+  if (pkg === 'Silver') return SOURCES.filter(s => (s.pkg === 'Bronze' || s.pkg === 'Silver') && s.on).map(s => s.id);
+  return SOURCES.filter(s => PKGS_SET.includes(s.pkg) && s.on).map(s => s.id);
+}
+
+// Mapping niveau de service → paramètres analytiques (indépendant du package sources)
+// Seuils scoring S-108 (tiede_*, pass2_grayzone_*, pass2_enabled) alignés sur la migration
+// docs/specs/S108_axe2_drafts/01_migration_sql_seuils.sql.
+// NOTE : S-132 (scoring_prudence_policy) n'est pas encore déployée — à réintroduire ici
+// une fois la colonne ajoutée en base (prévu après 2026-06-15).
+function defaultsForServiceLevel(level) {
+  if (!level || level === 'BRONZE') return {
+    llmProfile: 'light', analysisDepth: 1,
+    featureFlags: {
+      advanced_scoring: false, advanced_enrichment: false, double_pass_enrichment: false,
+      slack_enabled: false, crm_push_enabled: false, advanced_reporting: false, linkedin_module: false
+    },
+    pass2Enabled: false,
+    tiedeMin: 30, tiedeMax: 60,
+    pass2GrayzoneMin: null, pass2GrayzoneMax: null,
+  };
+  if (level === 'SILVER') return {
+    llmProfile: 'standard', analysisDepth: 2,
+    featureFlags: {
+      advanced_scoring: true, advanced_enrichment: true, double_pass_enrichment: false,
+      slack_enabled: true, crm_push_enabled: false, advanced_reporting: false, linkedin_module: false
+    },
+    pass2Enabled: true,
+    tiedeMin: 40, tiedeMax: 60,
+    pass2GrayzoneMin: 50, pass2GrayzoneMax: 65,
+  };
+  // Décision 2026-06-15 : GOLD aligné à tiedeMin=40 (cohérent S-111 prompt commun
+  // `Confidence tiede 40-60` + CLIENT_ALPHA déjà à 40 + CLIENT_GA UPDATE prod 2026-06-15).
+  // PLATINUM reste à tiedeMin=45 par défaut (aucun client Platinum actif à ce jour,
+  // arbitrage à reprendre si nouveau client Platinum). Mémoire `project_s111_s108_calibration_gap.md`.
+  if (level === 'PLATINUM') return {
+    llmProfile: 'advanced', analysisDepth: 3,
+    featureFlags: {
+      advanced_scoring: true, advanced_enrichment: true, double_pass_enrichment: true,
+      slack_enabled: true, crm_push_enabled: true, advanced_reporting: true, linkedin_module: true
+    },
+    pass2Enabled: true,
+    tiedeMin: 45, tiedeMax: 60,
+    pass2GrayzoneMin: 45, pass2GrayzoneMax: 70,
+  };
+  // GOLD (défaut)
+  return {
+    llmProfile: 'advanced', analysisDepth: 3,
+    featureFlags: {
+      advanced_scoring: true, advanced_enrichment: true, double_pass_enrichment: true,
+      slack_enabled: true, crm_push_enabled: true, advanced_reporting: true, linkedin_module: true
+    },
+    pass2Enabled: true,
+    tiedeMin: 40, tiedeMax: 60,
+    pass2GrayzoneMin: 45, pass2GrayzoneMax: 70,
+  };
+}
+
+/* ══════════════════════════════════════════════
+   GÉNÉRATION SQL
+══════════════════════════════════════════════ */
+
+function esc(v) {
+  if (v == null || v === '') return '';
+  return String(v).replace(/['\u2019\u02BC]/g, "''");
+}
+
+// PostgreSQL array literal pour TEXT[] \u2014 geographic_scope par contact (S109)
+function pgArr(arr) {
+  if (!arr || !arr.length) return "ARRAY[]::TEXT[]";
+  return "ARRAY[" + arr.map(v => `'${esc(v)}'`).join(',') + "]::TEXT[]";
+}
+
+// JSONB literal \u2014 JSON.stringify puis \u00E9chappement apostrophes pour SQL
+function jsonbLit(obj) {
+  const s = JSON.stringify(obj);
+  return `'${s.replace(/'/g, "''")}'::jsonb`;
+}
+
+function genSQL(st) {
+  const {clientId, clientName, geographyScope, regions, pkg, sources, signals, contacts, channel,
+         serviceLevel, featureFlags, llmProfile, analysisDepth, excludeGlobal,
+         pass2Enabled, tiedeMin, tiedeMax, pass2GrayzoneMin, pass2GrayzoneMax,
+         goldPrefs, hubspot, delivery} = st;
+  const now = new Date().toLocaleString('fr-FR', {dateStyle:'short', timeStyle:'medium'});
+  const geoStr = regions.join(', ');
+  const geoScopeStr = Array.isArray(geographyScope) ? geographyScope.join(', ') : geographyScope;
+  const nb = sources.length;
+  const ns = signals.length;
+  const nc = contacts.length;
+  const ch = channel === 'email' ? 'email' : channel === 'slack' ? 'slack' : 'email+slack';
+  const pkgVal = pkg ? `'${esc(pkg)}'` : 'NULL';
+  const slVal  = serviceLevel ? `'${serviceLevel}'` : 'NULL';
+  const llmVal = llmProfile    ? `'${llmProfile}'`  : `'light'`;
+  const adVal  = analysisDepth != null ? analysisDepth : 1;
+  const exclVal = esc(excludeGlobal != null ? excludeGlobal : DEFAULT_EXCLUDE_GLOBAL);
+
+  // S-108 — seuils scoring (Pass 1/Pass 2)
+  // Fallback aux defaults du tier si les valeurs n'ont pas été renseignées (rétro-compatibilité state)
+  const _scoringDefaults = defaultsForServiceLevel(serviceLevel);
+  const _pass2Enabled = (pass2Enabled === true || pass2Enabled === false) ? pass2Enabled : _scoringDefaults.pass2Enabled;
+  const _tiedeMin     = (tiedeMin     != null) ? tiedeMin     : _scoringDefaults.tiedeMin;
+  const _tiedeMax     = (tiedeMax     != null) ? tiedeMax     : _scoringDefaults.tiedeMax;
+  const _gzMin        = (pass2GrayzoneMin != null) ? pass2GrayzoneMin : _scoringDefaults.pass2GrayzoneMin;
+  const _gzMax        = (pass2GrayzoneMax != null) ? pass2GrayzoneMax : _scoringDefaults.pass2GrayzoneMax;
+  const sqlInt        = v => (v === null || v === undefined || v === '') ? 'NULL' : String(parseInt(v, 10));
+  const pass2EnabledVal = _pass2Enabled ? 'TRUE' : 'FALSE';
+  const tiedeMinVal     = sqlInt(_tiedeMin);
+  const tiedeMaxVal     = sqlInt(_tiedeMax);
+  const gzMinVal        = sqlInt(_gzMin);
+  const gzMaxVal        = sqlInt(_gzMax);
+
+  // feature_flags JSONB
+  const ff = featureFlags || {advanced_scoring:false,advanced_enrichment:false,double_pass_enrichment:false,slack_enabled:false,crm_push_enabled:false,advanced_reporting:false,linkedin_module:false};
+
+  // scoring_config JSONB (Gold/Platinum prefs) — null sinon
+  const isGoldPlus = serviceLevel === 'GOLD' || serviceLevel === 'PLATINUM';
+  const numOrNull = v => (v === '' || v == null) ? null : (parseInt(v, 10) || null);
+  const sc = isGoldPlus && goldPrefs ? {
+    ca_min_meur:  numOrNull(goldPrefs.ca_min_meur),
+    ca_max_meur:  numOrNull(goldPrefs.ca_max_meur),
+    effectif_min: numOrNull(goldPrefs.effectif_min),
+    effectif_max: numOrNull(goldPrefs.effectif_max),
+    sectors_excluded: goldPrefs.sectors_excluded || [],
+  } : null;
+
+  // delivery_config JSONB
+  const dc = delivery ? {
+    digest_hour:   delivery.digest_hour,
+    weekly_day:    delivery.weekly_day,
+    footer_cumul:  delivery.footer_cumul,
+  } : {digest_hour: 8, weekly_day: 'friday', footer_cumul: true};
+
+  // crm_config JSONB (HubSpot) — null si désactivé
+  const cc = (hubspot && hubspot.enabled) ? {
+    crm_type:        'hubspot',
+    hubspot_api_key: hubspot.api_key,
+    pipeline_id:     hubspot.pipeline_id,
+    dealstage_id:    hubspot.dealstage_id,
+  } : null;
+
+  let s = '';
+  s += `-- ═══════════════════════════════════════════════════════════\n`;
+  s += `-- ONBOARDING CLIENT : ${clientId} (${clientName})\n`;
+  s += `-- Niveau de service : ${serviceLevel || 'non défini'} · Package sources : ${pkg || 'sur mesure'}\n`;
+  s += `-- ${nb} sources · ${ns} signaux · ${nc} contacts · canal=${ch}\n`;
+  if (cc) s += `-- HubSpot : activé (push CRM via S-CRM-HUBSPOT-PUSH) — crm_push_approved restera FALSE jusqu'au test E2E\n`;
+  if (sc) s += `-- Scoring : ${sc.sectors_excluded.length} secteur(s) exclu(s)\n`;
+  s += `-- Généré le ${now} via Signalai Onboarding v2.0\n`;
+  s += `-- EXÉCUTION : sudo -u postgres psql -d agent_emt — bloc par bloc (statement-par-statement)\n`;
+  s += `-- ═══════════════════════════════════════════════════════════\n\n`;
+
+  // 0. Vérification structure (décommenter si nécessaire)
+  s += `-- ─── 0. Vérification structure (décommenter si nécessaire) ───\n`;
+  s += `-- SELECT column_name, data_type FROM information_schema.columns\n`;
+  s += `--   WHERE table_schema='public' AND table_name='clients' ORDER BY ordinal_position;\n`;
+  s += `-- Colonnes attendues : client_id, client_name, geography_scope, geographic_scope, package,\n`;
+  s += `--   service_level, feature_flags JSONB, llm_profile, analysis_depth, exclude_global,\n`;
+  s += `--   scoring_config JSONB, delivery_config JSONB, crm_config JSONB, hubspot_enabled BOOL, crm_push_approved BOOL,\n`;
+  s += `--   pass2_enabled BOOL, tiede_min/max INT, pass2_grayzone_min/max INT  -- S-108\n`;
+  s += `-- NB : scoring_prudence_policy (S-132) à inclure une fois la migration appliquée (>= 2026-06-15)\n\n`;
+
+  // 1. UPSERT clients
+  s += `-- ─── 1. UPSERT clients : ${clientId} ───\n`;
+  s += `INSERT INTO clients (\n`;
+  s += `  client_id, client_name, geography_scope, geographic_scope, package,\n`;
+  s += `  service_level, feature_flags, llm_profile, analysis_depth, exclude_global,\n`;
+  s += `  scoring_config, delivery_config, crm_config, hubspot_enabled, crm_push_approved,\n`;
+  s += `  pass2_enabled, tiede_min, tiede_max, pass2_grayzone_min, pass2_grayzone_max\n`;
+  s += `) VALUES (\n`;
+  s += `  '${esc(clientId)}', '${esc(clientName)}',\n`;
+  s += `  '${esc(geoScopeStr)}', '${esc(geoStr)}', ${pkgVal},\n`;
+  s += `  ${slVal}, ${jsonbLit(ff)},\n`;
+  s += `  ${llmVal}, ${adVal}, '${exclVal}',\n`;
+  s += `  ${sc ? jsonbLit(sc) : `'{}'::jsonb`}, ${jsonbLit(dc)}, ${cc ? jsonbLit(cc) : `'{}'::jsonb`},\n`;
+  s += `  ${cc ? 'TRUE' : 'FALSE'}, FALSE,  -- crm_push_approved volontairement FALSE : à activer après test E2E\n`;
+  s += `  ${pass2EnabledVal}, ${tiedeMinVal}, ${tiedeMaxVal}, ${gzMinVal}, ${gzMaxVal}  -- S-108\n`;
+  s += `)\nON CONFLICT (client_id) DO UPDATE SET\n`;
+  s += `  client_name             = EXCLUDED.client_name,\n`;
+  s += `  geography_scope         = EXCLUDED.geography_scope,\n`;
+  s += `  geographic_scope        = EXCLUDED.geographic_scope,\n`;
+  s += `  package                 = EXCLUDED.package,\n`;
+  s += `  service_level           = EXCLUDED.service_level,\n`;
+  s += `  feature_flags           = EXCLUDED.feature_flags,\n`;
+  s += `  llm_profile             = EXCLUDED.llm_profile,\n`;
+  s += `  analysis_depth          = EXCLUDED.analysis_depth,\n`;
+  s += `  exclude_global          = EXCLUDED.exclude_global,\n`;
+  s += `  scoring_config          = EXCLUDED.scoring_config,\n`;
+  s += `  delivery_config         = EXCLUDED.delivery_config,\n`;
+  s += `  crm_config              = EXCLUDED.crm_config,\n`;
+  s += `  hubspot_enabled         = EXCLUDED.hubspot_enabled,\n`;
+  s += `  pass2_enabled           = EXCLUDED.pass2_enabled,\n`;
+  s += `  tiede_min               = EXCLUDED.tiede_min,\n`;
+  s += `  tiede_max               = EXCLUDED.tiede_max,\n`;
+  s += `  pass2_grayzone_min      = EXCLUDED.pass2_grayzone_min,\n`;
+  s += `  pass2_grayzone_max      = EXCLUDED.pass2_grayzone_max;\n`;
+  s += `-- Note : crm_push_approved non écrasé sur UPDATE (préserve état d'approbation)\n\n`;
+
+  // 2. Souscriptions sources
+  s += `-- ─── 2. Souscriptions sources (${nb}) ───\n`;
+  s += `DELETE FROM client_source_subscriptions WHERE client_id = '${esc(clientId)}';\n`;
+  if (nb > 0) {
+    s += `INSERT INTO client_source_subscriptions (client_id, source_id) VALUES\n`;
+    sources.forEach((id, i) => { s += `  ('${esc(clientId)}', '${id}')${i < nb-1 ? ',' : ';'}\n`; });
+  }
+  s += `\n`;
+
+  // 3. Souscriptions signaux
+  s += `-- ─── 3. Souscriptions signaux (${ns}) ───\n`;
+  s += `DELETE FROM client_signal_subscriptions WHERE client_id = '${esc(clientId)}';\n`;
+  if (ns > 0) {
+    s += `INSERT INTO client_signal_subscriptions (client_id, signal_id) VALUES\n`;
+    signals.forEach((id, i) => { s += `  ('${esc(clientId)}', '${id}')${i < ns-1 ? ',' : ';'}\n`; });
+  }
+  s += `\n`;
+
+  // 4. Contacts (geographic_scope TEXT[] — S109 multi-scope)
+  s += `-- ─── 4. Contacts (${nc}) — geographic_scope TEXT[] (S109 multi-scope) ───\n`;
+  s += `DELETE FROM client_contacts WHERE client_id = '${esc(clientId)}';\n`;
+  if (nc > 0) {
+    s += `INSERT INTO client_contacts\n`;
+    s += `  (client_id, name, email, role, geographic_scope,\n`;
+    s += `   slack_channel, receives_alert, receives_digest_daily, receives_digest_weekly, active) VALUES\n`;
+    contacts.forEach((c, i) => {
+      const sl = c.slack && c.slack.trim() ? `'${esc(c.slack.trim())}'` : 'NULL';
+      const scopes = c.scopes || [];
+      s += `  ('${esc(clientId)}', '${esc(c.name)}', '${esc(c.email)}',\n`;
+      s += `   '${c.role}', ${pgArr(scopes)},\n`;
+      s += `   ${sl}, ${c.alert?'TRUE':'FALSE'}, ${c.digest_daily?'TRUE':'FALSE'}, ${c.digest_weekly?'TRUE':'FALSE'}, TRUE)${i<nc-1?',':';'}\n`;
+    });
+  }
+  s += `\n`;
+
+  // 5. Vérification finale
+  s += `-- ─── 5. Vérification finale (sanity check) ───\n`;
+  s += `SELECT c.client_id, c.service_level, c.package, c.hubspot_enabled, c.crm_push_approved,\n`;
+  s += `       c.pass2_enabled, c.tiede_min, c.tiede_max,\n`;
+  s += `       c.pass2_grayzone_min, c.pass2_grayzone_max,\n`;
+  s += `       (SELECT COUNT(*) FROM client_contacts WHERE client_id=c.client_id) AS nb_contacts,\n`;
+  s += `       (SELECT COUNT(*) FROM client_source_subscriptions WHERE client_id=c.client_id) AS nb_sources,\n`;
+  s += `       (SELECT COUNT(*) FROM client_signal_subscriptions WHERE client_id=c.client_id) AS nb_signals\n`;
+  s += `FROM clients c WHERE client_id='${esc(clientId)}';\n\n`;
+
+  s += `-- ✅ ${clientId} onboardé : service_level=${serviceLevel||'NULL'} · package=${pkg||'NULL'} · ${nb} sources · ${ns} signaux · ${nc} contacts\n`;
+  if (cc) s += `-- ⚠️  HubSpot push : exécuter manuellement après test E2E :\n`;
+  if (cc) s += `--    UPDATE clients SET crm_push_approved = TRUE WHERE client_id = '${esc(clientId)}';\n`;
+  return s;
+}
+
+/* ══════════════════════════════════════════════
+   COMPOSANTS
+══════════════════════════════════════════════ */
+
+function Stepper({cur}) {
+  const steps = ['Identité','Sources','Signaux','Contacts','Export SQL'];
+  return (
+    <div className="flex items-center mb-8">
+      {steps.map((lbl, i) => {
+        const n = i + 1;
+        const cls = n < cur ? 'step-done' : n === cur ? 'step-active' : 'step-idle';
+        return (
+          <React.Fragment key={n}>
+            <div className="flex flex-col items-center gap-1 flex-shrink-0">
+              <div className={`w-9 h-9 rounded-full flex items-center justify-center text-sm font-bold ${cls}`}>
+                {n < cur ? '✓' : n}
+              </div>
+              <span className={`text-xs whitespace-nowrap ${n===cur?'text-blue-400':'text-slate-600'}`}>{lbl}</span>
+            </div>
+            {i < 4 && <div className={`flex-1 h-px mx-2 mb-4 ${n < cur ? 'bg-green-700' : 'bg-slate-700'}`} />}
+          </React.Fragment>
+        );
+      })}
+    </div>
+  );
+}
+
+/* ─── Étape 1 — Identité + Niveau de service ─── */
+function Step1({st, set}) {
+  const autoId = name =>
+    'CLIENT_' + name.toUpperCase()
+      .normalize('NFD').replace(/[\u0300-\u036f]/g,'')
+      .replace(/[^A-Z0-9]/g,'_').replace(/_+/g,'_')
+      .replace(/^_|_$/g,'').slice(0,20);
+
+  const onName = e => {
+    const v = e.target.value;
+    set(s => ({...s, clientName:v, clientId: s.idManual ? s.clientId : autoId(v)}));
+  };
+  const onId = e => set(s => ({...s, clientId: e.target.value.toUpperCase().replace(/[^A-Z0-9_]/g,''), idManual:true}));
+  const toggleR = r => set(s => ({...s, regions: s.regions.includes(r) ? s.regions.filter(x=>x!==r) : [...s.regions, r]}));
+
+  // Sélection du niveau de service → fixe les paramètres analytiques
+  // et pré-charge le package sources correspondant (modifiable indépendamment en Step 2)
+  const selServiceLevel = level => {
+    const defaults = defaultsForServiceLevel(level);
+    // PLATINUM utilise le package sources Gold (pas de package Platinum différencié)
+    const pkgKey = level === 'PLATINUM' ? 'GOLD' : level;
+    const matchPkg = pkgKey.charAt(0) + pkgKey.slice(1).toLowerCase(); // 'GOLD' → 'Gold'
+    set(s => ({...s, serviceLevel: level, ...defaults, pkg: matchPkg, sources: srcForPkg(matchPkg)}));
+  };
+
+  const slCls = {
+    BRONZE:   {base:'border-amber-800 bg-amber-900/10', sel:'border-amber-400 bg-amber-900/25 ring-1 ring-amber-400'},
+    SILVER:   {base:'border-slate-600 bg-slate-800/30', sel:'border-slate-300 bg-slate-700/50 ring-1 ring-slate-300'},
+    GOLD:     {base:'border-yellow-800 bg-yellow-900/10', sel:'border-yellow-400 bg-yellow-900/25 ring-1 ring-yellow-400'},
+    PLATINUM: {base:'border-cyan-800 bg-cyan-900/10',     sel:'border-cyan-300 bg-cyan-900/25 ring-1 ring-cyan-300'},
+  };
+
+  const slDetails = [
+    {level:'BRONZE',   icon:'🥉', label:'Bronze',   desc:'Scoring mutualisé single pass · enrichissement standard (3 talking points) · presse nationale'},
+    {level:'SILVER',   icon:'🥈', label:'Silver',   desc:'Scoring mutualisé + double pass zones grises · enrichissement (4 TP + risques partenaires) · sectorielles'},
+    {level:'GOLD',     icon:'🥇', label:'Gold',     desc:'Scoring spécifique client + double pass · enrichissement Pass 2 Gold (Opus + Perplexity + LinkedIn) · push CRM'},
+    {level:'PLATINUM', icon:'💎', label:'Platinum', desc:'Tout Gold + prompt enrichissement spécifique cabinet (méthode propriétaire encapsulée)'},
+  ];
+
+  return (
+    <div>
+      <h2 className="mb-6">Étape 1 — Identité client</h2>
+      <div className="grid grid-cols-2 gap-5">
+        <div className="fg">
+          <label className="lbl">Nom du cabinet *</label>
+          <input type="text" value={st.clientName} onChange={onName} placeholder="ex: Cabinet Valtus" />
+        </div>
+        <div className="fg">
+          <label className="lbl">Client ID (auto) *</label>
+          <input type="text" value={st.clientId} onChange={onId} placeholder="CLIENT_VALTUS"
+            style={{fontFamily:'monospace',fontSize:'13px'}} />
+          <p className="text-xs text-slate-500 mt-1">Clé primaire en base — lettres majuscules, chiffres, _</p>
+        </div>
+        <div className="fg">
+          <label className="lbl">Secteur d'activité (informatif)</label>
+          <input type="text" value={st.secteur} onChange={e=>set(s=>({...s,secteur:e.target.value}))}
+            placeholder="ex: Management de transition, Industrie…" />
+        </div>
+        <div className="fg">
+          <label className="lbl">Périmètre géo global <span className="font-normal text-slate-500">(multi-sélection)</span></label>
+          <div className="flex flex-wrap gap-2 mt-1">
+            {GEO_SCOPES.map(g => {
+              const active = st.geographyScope.includes(g.value);
+              const toggle = () => set(s => {
+                const cur = s.geographyScope;
+                const next = cur.includes(g.value) ? cur.filter(v=>v!==g.value) : [...cur, g.value];
+                return {...s, geographyScope: next.length ? next : [g.value]};
+              });
+              return (
+                <span key={g.value} onClick={toggle}
+                  className={`chip ${active ? 'chip-on' : 'chip-off'}`}>
+                  {active && <span className="mr-1">✓</span>}{g.flag} {g.label}
+                </span>
+              );
+            })}
+          </div>
+        </div>
+      </div>
+
+      <div className="fg">
+        <div className="flex items-center justify-between mb-3">
+          <label className="lbl mb-0">Régions françaises couvertes *
+            <span className="font-normal ml-1 text-slate-500">(routage alertes DELIVER)</span>
+          </label>
+          <div className="flex gap-2">
+            <button className="btn btn-s btn-sm" onClick={() => set(s=>({...s,regions:[...REGIONS]}))}>Tout cocher</button>
+            <button className="btn btn-s btn-sm" onClick={() => set(s=>({...s,regions:[]}))}>Tout décocher</button>
+          </div>
+        </div>
+        <div className="flex flex-wrap gap-2">
+          {REGIONS.map(r => (
+            <span key={r} onClick={() => toggleR(r)}
+              className={`chip ${st.regions.includes(r) ? 'chip-on' : 'chip-off'}`}>
+              {st.regions.includes(r) && <span className="mr-1">✓</span>}{r}
+            </span>
+          ))}
+        </div>
+        {st.regions.length > 0 &&
+          <p className="text-xs text-slate-400 mt-2">{st.regions.length} région(s) — valeur stockée dans <code>geographic_scope</code></p>}
+      </div>
+
+      {/* ── Niveau de service ── */}
+      <div style={{borderTop:'1px solid #1e293b', paddingTop:'20px', marginTop:'4px'}}>
+        <h3 style={{marginBottom:'4px'}}>Niveau de service *</h3>
+        <p className="text-slate-400 text-sm mb-4">
+          Détermine le scoring (mutualisé vs spécifique client), l'enrichissement (templates et activation du Pass 2 Gold) et les feature flags.
+          Le package sources correspondant est pré-chargé en étape 2 mais reste modifiable indépendamment.
+        </p>
+        <div className="grid grid-cols-3 gap-3">
+          {slDetails.map(({level, icon, label, desc}) => {
+            const isOn = st.serviceLevel === level;
+            const cls = slCls[level];
+            return (
+              <div key={level} onClick={() => selServiceLevel(level)}
+                className={`card p-4 cursor-pointer transition-all ${isOn ? cls.sel : cls.base}`}>
+                <div className="text-2xl mb-1">{icon}</div>
+                <div className="font-bold text-base">{label}</div>
+                <div className="text-xs text-slate-400 mt-1">{desc}</div>
+                {isOn && <div className="text-xs text-blue-400 mt-1 font-medium">✓ Sélectionné</div>}
+              </div>
+            );
+          })}
+        </div>
+        {st.serviceLevel && (
+          <p className="text-xs text-slate-400 mt-3">
+            <span className="text-blue-400 font-mono font-semibold">{st.serviceLevel}</span>
+            {' · '}sources pré-chargées : package <span className="text-slate-300">{st.pkg}</span>
+            {' · '}ajustable indépendamment en étape 2
+          </p>
+        )}
+      </div>
+
+      {/* ── Configuration scoring (S-108 — seuils Pass 1/Pass 2) — conditionnel niveau de service ── */}
+      {/* S-132 (scoring_prudence_policy) absent : non déployé en base, à réintroduire >= 2026-06-15 */}
+      {st.serviceLevel && (
+        <div style={{borderTop:'1px solid #1e293b', paddingTop:'20px', marginTop:'4px'}}>
+          <h3 style={{marginBottom:'4px'}}>Configuration scoring
+            <span className="ml-2 text-xs font-normal text-slate-500">(seuils Pass 1/Pass 2 — S-108)</span>
+          </h3>
+          <p className="text-slate-400 text-sm mb-3">
+            Valeurs pré-remplies selon le niveau de service. Ajustez uniquement si vous avez calibré ce client manuellement.
+            Stockées dans les colonnes <code className="text-slate-400">clients.pass2_enabled</code>, <code className="text-slate-400">tiede_min/max</code>,
+            <code className="text-slate-400"> pass2_grayzone_min/max</code>.
+          </p>
+
+          <div className="grid grid-cols-2 gap-4">
+            <div className="fg">
+              <label className="lbl">Pass 2 activé</label>
+              <div className="flex items-center gap-3 mt-1">
+                <span
+                  onClick={() => set(s => ({...s, pass2Enabled: !s.pass2Enabled}))}
+                  className={`chip ${st.pass2Enabled ? 'chip-on' : 'chip-off'}`}>
+                  {st.pass2Enabled ? '✓ Activé' : '✗ Désactivé'}
+                </span>
+                <span className="text-xs text-slate-500">
+                  {st.serviceLevel === 'BRONZE' ? 'défaut BRONZE : désactivé' : 'défaut tier ≥ SILVER : activé'}
+                </span>
+              </div>
+            </div>
+            <div className="fg">
+              <label className="lbl">Tier appliqué</label>
+              <div className="text-sm text-slate-300 mt-2 font-mono">{st.serviceLevel}</div>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-4 gap-4 mt-2">
+            <div className="fg">
+              <label className="lbl">tiede_min</label>
+              <input type="text" inputMode="numeric" pattern="[0-9]*"
+                value={st.tiedeMin == null ? '' : st.tiedeMin}
+                onChange={e => set(s => ({...s, tiedeMin: e.target.value === '' ? null : parseInt(e.target.value, 10)}))}
+                placeholder="ex: 40" />
+            </div>
+            <div className="fg">
+              <label className="lbl">tiede_max</label>
+              <input type="text" inputMode="numeric" pattern="[0-9]*"
+                value={st.tiedeMax == null ? '' : st.tiedeMax}
+                onChange={e => set(s => ({...s, tiedeMax: e.target.value === '' ? null : parseInt(e.target.value, 10)}))}
+                placeholder="ex: 60" />
+            </div>
+            <div className="fg">
+              <label className="lbl">pass2_grayzone_min</label>
+              <input type="text" inputMode="numeric" pattern="[0-9]*"
+                value={st.pass2GrayzoneMin == null ? '' : st.pass2GrayzoneMin}
+                onChange={e => set(s => ({...s, pass2GrayzoneMin: e.target.value === '' ? null : parseInt(e.target.value, 10)}))}
+                disabled={!st.pass2Enabled}
+                placeholder={st.pass2Enabled ? 'ex: 45' : 'NULL si Pass 2 off'} />
+            </div>
+            <div className="fg">
+              <label className="lbl">pass2_grayzone_max</label>
+              <input type="text" inputMode="numeric" pattern="[0-9]*"
+                value={st.pass2GrayzoneMax == null ? '' : st.pass2GrayzoneMax}
+                onChange={e => set(s => ({...s, pass2GrayzoneMax: e.target.value === '' ? null : parseInt(e.target.value, 10)}))}
+                disabled={!st.pass2Enabled}
+                placeholder={st.pass2Enabled ? 'ex: 70' : 'NULL si Pass 2 off'} />
+            </div>
+          </div>
+
+          <p className="text-xs mt-2">
+            <span
+              className="text-blue-400 cursor-pointer hover:underline"
+              onClick={() => set(s => ({...s, ...defaultsForServiceLevel(s.serviceLevel)}))}>
+              ⟲ Réinitialiser aux defaults du tier {st.serviceLevel}
+            </span>
+            <span className="text-slate-500 ml-3">
+              (référence S-108 + alignement S-111/2026-06-15 : BRONZE pas de Pass 2 · SILVER tiede 40-60 grayzone 50-65 · GOLD tiede 40-60 grayzone 45-70 · PLATINUM tiede 45-60 grayzone 45-70)
+            </span>
+          </p>
+        </div>
+      )}
+
+      {/* ── C1.1 Préférences Gold/Platinum (conditionnel) ── */}
+      {(st.serviceLevel === 'GOLD' || st.serviceLevel === 'PLATINUM') && (
+        <div style={{borderTop:'1px solid #1e293b', paddingTop:'20px', marginTop:'4px'}}>
+          <h3 style={{marginBottom:'4px', color:'#f1f5f9'}}>
+            Préférences {st.serviceLevel === 'PLATINUM' ? 'Platinum' : 'Gold'}
+            <span className="ml-2 text-xs font-normal text-slate-300">(filtres entreprise cible)</span>
+          </h3>
+          <p className="text-slate-200 text-sm mb-3">
+            Cibles taille entreprise et secteurs à exclure. Appliqués dans le filtrage et le scoring.
+          </p>
+
+          <div className="grid grid-cols-2 gap-4">
+            <div className="fg">
+              <label className="lbl" style={{color:'#e2e8f0'}}>CA cible min (M€) — laisser vide si pas de seuil</label>
+              <input type="text" inputMode="numeric" pattern="[0-9]*" value={st.goldPrefs.ca_min_meur}
+                onChange={e=>set(s=>({...s, goldPrefs:{...s.goldPrefs, ca_min_meur:e.target.value.replace(/[^0-9]/g,'')}}))}
+                placeholder="ex: 10 (= 10 M€)" />
+            </div>
+            <div className="fg">
+              <label className="lbl" style={{color:'#e2e8f0'}}>CA cible max (M€)</label>
+              <input type="text" inputMode="numeric" pattern="[0-9]*" value={st.goldPrefs.ca_max_meur}
+                onChange={e=>set(s=>({...s, goldPrefs:{...s.goldPrefs, ca_max_meur:e.target.value.replace(/[^0-9]/g,'')}}))}
+                placeholder="ex: 500 (= 500 M€)" />
+            </div>
+            <div className="fg">
+              <label className="lbl" style={{color:'#e2e8f0'}}>Effectif cible min</label>
+              <input type="text" inputMode="numeric" pattern="[0-9]*" value={st.goldPrefs.effectif_min}
+                onChange={e=>set(s=>({...s, goldPrefs:{...s.goldPrefs, effectif_min:e.target.value.replace(/[^0-9]/g,'')}}))}
+                placeholder="ex: 50" />
+            </div>
+            <div className="fg">
+              <label className="lbl" style={{color:'#e2e8f0'}}>Effectif cible max</label>
+              <input type="text" inputMode="numeric" pattern="[0-9]*" value={st.goldPrefs.effectif_max}
+                onChange={e=>set(s=>({...s, goldPrefs:{...s.goldPrefs, effectif_max:e.target.value.replace(/[^0-9]/g,'')}}))}
+                placeholder="ex: 5000" />
+            </div>
+          </div>
+
+          <div className="fg">
+            <label className="lbl" style={{color:'#e2e8f0'}}>Secteurs exclus (multi-sélection)</label>
+            <div className="flex flex-wrap gap-2 mt-1">
+              {SECTORS_NACE.map(sec => {
+                const active = st.goldPrefs.sectors_excluded.includes(sec);
+                const toggle = () => set(s => {
+                  const cur = s.goldPrefs.sectors_excluded;
+                  const next = cur.includes(sec) ? cur.filter(x=>x!==sec) : [...cur, sec];
+                  return {...s, goldPrefs:{...s.goldPrefs, sectors_excluded: next}};
+                });
+                return (
+                  <span key={sec} onClick={toggle}
+                    className="chip"
+                    style={active
+                      ? {background:'#7f1d1d', color:'#ffffff'}
+                      : {background:'#1e293b', color:'#e2e8f0', border:'1px solid #475569'}}>
+                    {active && <span className="mr-1">✕</span>}{sec}
+                  </span>
+                );
+              })}
+            </div>
+            {st.goldPrefs.sectors_excluded.length > 0 &&
+              <p className="text-xs mt-2" style={{color:'#cbd5e1'}}>
+                {st.goldPrefs.sectors_excluded.length} secteur(s) exclu(s) — signaux entreprises de ces secteurs rejetés en amont
+              </p>}
+          </div>
+        </div>
+      )}
+
+      {/* ── Filtres d'exclusion globale ── */}
+      <div style={{borderTop:'1px solid #1e293b', paddingTop:'20px', marginTop:'4px'}}>
+        <h3 style={{marginBottom:'4px'}}>Filtres d'exclusion globale</h3>
+        <p className="text-slate-400 text-sm mb-3">
+          Articles rejetés dès l'ingestion, tous signaux confondus. La valeur par défaut couvre les faux
+          positifs courants (presse non-business, liquidation judiciaire). Format : regex pipe-séparée.
+        </p>
+        <textarea
+          value={st.excludeGlobal != null ? st.excludeGlobal : DEFAULT_EXCLUDE_GLOBAL}
+          onChange={e => set(s => ({...s, excludeGlobal: e.target.value}))}
+          rows={3}
+          style={{background:'#1e293b', border:'1px solid #334155', borderRadius:'6px', color:'#e2e8f0',
+            padding:'8px 12px', width:'100%', outline:'none', fontFamily:'monospace', fontSize:'12px',
+            resize:'vertical', lineHeight:'1.6'}}
+        />
+        <p className="text-xs text-slate-500 mt-1">
+          Stocké dans <code className="text-slate-400">clients.exclude_global</code> — séparateur <code className="text-slate-400">|</code>
+          {' · '}
+          <span
+            className="text-blue-400 cursor-pointer hover:underline"
+            onClick={() => set(s => ({...s, excludeGlobal: DEFAULT_EXCLUDE_GLOBAL}))}>
+            Réinitialiser aux valeurs par défaut
+          </span>
+        </p>
+      </div>
+    </div>
+  );
+}
+
+/* ─── Étape 2 — Sources (package sources indépendant du niveau de service) ─── */
+function Step2({st, set}) {
+  const [q, setQ] = useState('');
+
+  // selPkg ne touche QUE le package sources — le serviceLevel reste celui choisi en Step 1
+  const selPkg = pkg => set(s => ({...s, pkg, sources: srcForPkg(pkg)}));
+  const toggleSrc = id => set(s => ({
+    ...s,
+    sources: s.sources.includes(id) ? s.sources.filter(x=>x!==id) : [...s.sources, id]
+  }));
+
+  const cats = [...new Set(SOURCES.filter(s => s.on && PKGS_SET.includes(s.pkg)).map(s => s.cat))];
+  const filtered = SOURCES.filter(s => s.on && PKGS_SET.includes(s.pkg) && (!q || s.name.toLowerCase().includes(q.toLowerCase()) || s.cat.toLowerCase().includes(q.toLowerCase())));
+  const catsF = cats.filter(c => filtered.some(s => s.cat === c));
+  const unpackaged = SOURCES.filter(s => !PKGS_SET.includes(s.pkg));
+  const unpackagedFiltered = unpackaged.filter(s => !q || s.name.toLowerCase().includes(q.toLowerCase()) || s.cat.toLowerCase().includes(q.toLowerCase()));
+
+  const pkgCls = {
+    Bronze: {base:'border-amber-800 bg-amber-900/10', sel:'border-amber-400 bg-amber-900/25 ring-1 ring-amber-400'},
+    Silver: {base:'border-slate-600 bg-slate-800/30', sel:'border-slate-300 bg-slate-700/50 ring-1 ring-slate-300'},
+    Gold:   {base:'border-yellow-800 bg-yellow-900/10',sel:'border-yellow-400 bg-yellow-900/25 ring-1 ring-yellow-400'},
+  };
+
+  return (
+    <div>
+      <h2 className="mb-1">Étape 2 — Sources</h2>
+      <p className="text-slate-400 text-sm mb-4">
+        Ajustez le périmètre de sources. Indépendant du niveau de service analytique défini en étape 1.
+      </p>
+
+      {/* Badge niveau de service — lecture seule */}
+      {st.serviceLevel && (
+        <div className="flex items-center gap-2 mb-4 px-3 py-2 rounded-lg text-xs"
+          style={{background:'rgba(30,41,59,0.6)', border:'1px solid #334155'}}>
+          <span className="text-slate-400">Niveau de service :</span>
+          <span className="font-semibold text-blue-400 font-mono">{st.serviceLevel}</span>
+          <span className="text-slate-600 ml-auto italic">défini en étape 1 — modifier là-bas</span>
+        </div>
+      )}
+
+      <h3 style={{marginBottom:'8px'}}>Pré-sélection sources (package)</h3>
+      <p className="text-slate-500 text-xs mb-3">
+        Choisissez un package pour pré-charger les sources, puis ajustez individuellement.
+        Ce choix est stocké dans la colonne <code className="text-slate-400">package</code> — distinct de <code className="text-slate-400">service_level</code>.
+      </p>
+
+      <div className="grid grid-cols-3 gap-4 mb-5">
+        {['Bronze','Silver','Gold'].map(pkg => {
+          const isOn = st.pkg === pkg;
+          const cnt = srcForPkg(pkg).length;
+          const icons = {Bronze:'🥉',Silver:'🥈',Gold:'🥇'};
+          const descs = {Bronze:'Presse nationale + 1 régionale',Silver:'+ sectorielle, M&A, régionales',Gold:'Toutes sources'};
+          return (
+            <div key={pkg} onClick={() => selPkg(pkg)}
+              className={`card p-4 cursor-pointer transition-all ${isOn ? pkgCls[pkg].sel : pkgCls[pkg].base}`}>
+              <div className="text-2xl mb-1">{icons[pkg]}</div>
+              <div className="font-bold text-base">{pkg}</div>
+              <div className="text-xs text-slate-400 mt-1">{descs[pkg]}</div>
+              <div className="text-xs font-mono text-slate-300 mt-1">{cnt} sources</div>
+            </div>
+          );
+        })}
+      </div>
+
+      <div className="fg">
+        <input type="text" value={q} onChange={e=>setQ(e.target.value)} placeholder="🔍  Filtrer les sources…" />
+      </div>
+
+      <div className="space-y-4 overflow-y-auto pr-1" style={{maxHeight:'340px'}}>
+        {catsF.map(cat => (
+          <div key={cat}>
+            <h3>{cat}</h3>
+            <div className="space-y-1">
+              {filtered.filter(s=>s.cat===cat).map(s => {
+                const on = st.sources.includes(s.id);
+                const typeColor = s.type==='RSS' ? 'style="background:#164e63;color:#67e8f9"'
+                  : s.type==='HTTP_API' ? 'style="background:#1e3a5f;color:#93c5fd"'
+                  : 'style="background:#3b1f5e;color:#c4b5fd"';
+                const pkgColor = s.pkg==='Bronze' ? 'style="background:#92400e;color:#fcd34d"'
+                  : s.pkg==='Silver' ? 'style="background:#374151;color:#d1d5db"'
+                  : 'style="background:#713f12;color:#fde68a"';
+                return (
+                  <label key={s.id}
+                    className={`flex items-center gap-3 p-2.5 rounded-lg cursor-pointer border transition-all mb-0 ${
+                      on ? 'bg-blue-900/25 border-blue-700/60' : 'bg-slate-800/40 border-transparent hover:border-slate-600'
+                    }`}>
+                    <input type="checkbox" checked={on} onChange={()=>toggleSrc(s.id)} className="w-4 h-4 accent-blue-500" />
+                    <span className="flex-1 text-sm text-slate-200">{s.name}</span>
+                    <div className="flex gap-1.5 items-center">
+                      {s.pay && <span className="tag" style={{background:'#422006',color:'#fb923c'}}>🔒</span>}
+                      <span className="tag" dangerouslySetInnerHTML={{__html:`<span ${typeColor} style="padding:2px 7px;border-radius:4px;font-size:10px;font-weight:600">${s.type==='HTTP_API'?'API':s.type}</span>`}} />
+                      <span className="tag" dangerouslySetInnerHTML={{__html:`<span ${pkgColor} style="padding:2px 7px;border-radius:4px;font-size:10px;font-weight:600">${s.pkg}</span>`}} />
+                    </div>
+                  </label>
+                );
+              })}
+            </div>
+          </div>
+        ))}
+      </div>
+
+      {unpackagedFiltered.length > 0 && (
+        <div className="mt-5">
+          <div className="flex items-center gap-2 mb-3">
+            <div className="flex-1 h-px bg-amber-800/50" />
+            <span className="text-xs font-semibold text-amber-400 uppercase tracking-widest whitespace-nowrap px-2">
+              🔬 Sources additionnelles — en cours de qualification
+            </span>
+            <div className="flex-1 h-px bg-amber-800/50" />
+          </div>
+          <p className="text-xs text-slate-500 mb-3">
+            Sources identifiées mais non encore intégrées dans un package officiel. Sélection manuelle possible.
+          </p>
+          <div className="space-y-1 overflow-y-auto pr-1" style={{maxHeight:'180px', borderLeft:'2px solid rgba(180,83,9,0.35)', paddingLeft:'10px'}}>
+            {unpackagedFiltered.map(s => {
+              const on = st.sources.includes(s.id);
+              const typeColor = s.type==='RSS' ? 'style="background:#164e63;color:#67e8f9"'
+                : s.type==='HTTP_API' ? 'style="background:#1e3a5f;color:#93c5fd"'
+                : 'style="background:#3b1f5e;color:#c4b5fd"';
+              return (
+                <label key={s.id}
+                  className={`flex items-center gap-3 p-2.5 rounded-lg cursor-pointer border transition-all mb-0 ${
+                    on ? 'bg-amber-900/20 border-amber-700/50' : 'bg-slate-800/40 border-transparent hover:border-amber-800/50'
+                  }`}
+                  style={!s.on ? {opacity:0.45, cursor:'not-allowed'} : {}}>
+                  <input type="checkbox" checked={on} onChange={()=>s.on && toggleSrc(s.id)} disabled={!s.on} className="w-4 h-4 accent-amber-500" />
+                  <span className="flex-1 text-sm text-slate-200">{s.name}
+                    {!s.on && <span className="ml-2 text-xs text-slate-500">(désactivée)</span>}
+                  </span>
+                  <div className="flex gap-1.5 items-center">
+                    <span className="tag" style={{background:'rgba(120,53,15,0.5)',color:'#fbbf24',padding:'2px 7px',borderRadius:'4px',fontSize:'10px',fontWeight:600}}>EN QUAL.</span>
+                    {s.pay && <span className="tag" style={{background:'#422006',color:'#fb923c'}}>🔒</span>}
+                    <span className="tag" dangerouslySetInnerHTML={{__html:`<span ${typeColor} style="padding:2px 7px;border-radius:4px;font-size:10px;font-weight:600">${s.type==='HTTP_API'?'API':s.type}</span>`}} />
+                  </div>
+                </label>
+              );
+            })}
+          </div>
+        </div>
+      )}
+
+      {(() => {
+        const pkgBase = st.pkg ? srcForPkg(st.pkg) : [];
+        const deltaAdd = st.pkg ? st.sources.filter(s => !pkgBase.includes(s)).length : 0;
+        const deltaDel = st.pkg ? pkgBase.filter(s => !st.sources.includes(s)).length : 0;
+        const isCustom = st.pkg && (deltaAdd > 0 || deltaDel > 0);
+        return (
+          <div className="mt-3 flex justify-between text-xs text-slate-400">
+            <span>{st.sources.length} / {SOURCES.filter(s=>s.on).length} sources sélectionnées</span>
+            <span>
+              {st.pkg && !isCustom && <span className="text-blue-400">Package {st.pkg} appliqué</span>}
+              {isCustom && (
+                <span>
+                  <span className="text-blue-400">Package {st.pkg}</span>
+                  <span className="text-amber-400 ml-1">modifié : +{deltaAdd} / -{deltaDel}</span>
+                </span>
+              )}
+            </span>
+          </div>
+        );
+      })()}
+    </div>
+  );
+}
+
+/* ─── Étape 3 ─── */
+function Step3({st, set}) {
+  const allOn = st.signals.length === SIGNALS.length;
+  const toggle = sid => set(s => ({
+    ...s, signals: s.signals.includes(sid) ? s.signals.filter(x=>x!==sid) : [...s.signals, sid]
+  }));
+  const toggleAll = () => set(s => ({...s, signals: allOn ? [] : SIGNALS.map(x=>x.sid)}));
+  const cats = [...new Set(SIGNALS.map(s=>s.cat))];
+
+  return (
+    <div>
+      <h2 className="mb-1">Étape 3 — Signaux EMT</h2>
+      <p className="text-slate-400 text-sm mb-4">Signaux détectés pour ce client (couche 3 filtrage pipeline).</p>
+      <div className="flex justify-between items-center mb-4">
+        <span className="text-sm text-slate-400">{st.signals.length} / {SIGNALS.length} signaux actifs</span>
+        <button className="btn btn-s btn-sm" onClick={toggleAll}>
+          {allOn ? 'Tout désélectionner' : 'Tout sélectionner'}
+        </button>
+      </div>
+      <div className="space-y-5 overflow-y-auto pr-1" style={{maxHeight:'430px'}}>
+        {cats.map(cat => (
+          <div key={cat}>
+            <h3>{cat}</h3>
+            <div className="grid grid-cols-2 gap-2">
+              {SIGNALS.filter(s=>s.cat===cat).map(sig => {
+                const on = st.signals.includes(sig.sid);
+                return (
+                  <div key={sig.sid} onClick={()=>toggle(sig.sid)}
+                    className={`card p-3 cursor-pointer transition-all ${on?'card-sel':''}`}>
+                    <div className="flex items-start gap-2">
+                      <span className="text-lg mt-0.5">{sig.icon}</span>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm text-slate-200 font-medium leading-snug">{sig.label}</p>
+                        <p className="text-xs text-slate-500 font-mono mt-0.5">{sig.sid}</p>
+                      </div>
+                      <div className={`w-4 h-4 rounded border flex-shrink-0 flex items-center justify-center mt-0.5
+                        ${on?'bg-blue-600 border-blue-500':'border-slate-600'}`}>
+                        {on && <span className="text-white text-xs leading-none">✓</span>}
+                      </div>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+/* ─── Étape 4 — Contacts, Livraison, HubSpot ─── */
+function Step4({st, set}) {
+  const addContact = () => set(s => ({
+    ...s,
+    contacts: [...s.contacts, {
+      id: Date.now(), name:'', email:'', role:'regional',
+      scopes: s.regions.length ? [s.regions[0]] : ['ALL'],
+      slack:'',
+      alert:true, digest_daily:false, digest_weekly:false
+    }]
+  }));
+  const del = id => set(s => ({...s, contacts: s.contacts.filter(c=>c.id!==id)}));
+  const upd = (id, f, v) => set(s => ({
+    ...s,
+    contacts: s.contacts.map(c => {
+      if (c.id !== id) return c;
+      let u = {...c, [f]:v};
+      if (f === 'role') {
+        if (v === 'national') { u.scopes = ['ALL']; u.digest_daily = true; u.digest_weekly = true; }
+        else { u.digest_daily = false; u.digest_weekly = false; if (u.scopes.includes('ALL')) u.scopes = s.regions.length ? [s.regions[0]] : []; }
+      }
+      return u;
+    })
+  }));
+  // C1.2 — Toggle d'une région dans le scopes[] d'un contact (multi-scope TEXT[])
+  // Fix bug : ne pas retomber sur ['ALL'] quand on retire la dernière région
+  // (cela masquait les chips et forçait un aller-retour national↔regional)
+  const toggleScope = (cid, region) => set(s => ({
+    ...s,
+    contacts: s.contacts.map(c => {
+      if (c.id !== cid) return c;
+      const cur = c.scopes || [];
+      // Si on coche une région concrète, retire 'ALL'
+      const base = cur.filter(x => x !== 'ALL');
+      const next = base.includes(region) ? base.filter(x => x !== region) : [...base, region];
+      return {...c, scopes: next};  // peut rester vide, l'avertissement amber s'affiche
+    })
+  }));
+  const setScopeAll = (cid) => set(s => ({
+    ...s,
+    contacts: s.contacts.map(c => c.id === cid ? {...c, scopes: ['ALL']} : c)
+  }));
+
+  const showEmail = st.channel === 'email' || st.channel === 'both';
+  const showSlack = st.channel === 'slack' || st.channel === 'both';
+  const crmAvailable = st.featureFlags && st.featureFlags.crm_push_enabled;
+
+  return (
+    <div>
+      <h2 className="mb-1">Étape 4 — Contacts, Livraison & CRM</h2>
+      <p className="text-slate-400 text-sm mb-5">Destinataires, canaux, périmètres géo par contact, préférences livraison, push HubSpot.</p>
+
+      {/* ── Canal de livraison ── */}
+      <div className="card p-4 mb-4">
+        <label className="lbl mb-2">Canal de livraison</label>
+        <div className="flex gap-3">
+          {[['email','📧 Email'],['slack','💬 Slack'],['both','📧+💬 Les deux']].map(([v,lbl]) => (
+            <button key={v} onClick={()=>set(s=>({...s,channel:v}))}
+              className={`px-4 py-2 rounded-lg text-sm font-medium border transition-all ${
+                st.channel===v ? 'bg-blue-700 border-blue-500 text-white' : 'bg-slate-800 border-slate-600 text-slate-300 hover:border-slate-400'
+              }`}>{lbl}</button>
+          ))}
+        </div>
+        {showSlack && (
+          <div className="mt-3 p-3 rounded-lg text-xs text-slate-400" style={{background:'rgba(30,41,59,0.6)',border:'1px solid #334155'}}>
+            💡 Convention : <code className="text-slate-300">#emt-alertes</code> (national) · <code className="text-slate-300">#emt-&#123;region&#125;</code> (régional)
+          </div>
+        )}
+      </div>
+
+      {/* ── C1.4 Préférences livraison ── */}
+      <div className="card p-4 mb-5">
+        <label className="lbl mb-2">Préférences livraison (timing & format)</label>
+        <div className="grid grid-cols-3 gap-3">
+          <div>
+            <label className="lbl">Heure digest quotidien</label>
+            <select value={st.delivery.digest_hour}
+              onChange={e=>set(s=>({...s, delivery:{...s.delivery, digest_hour: parseInt(e.target.value, 10)}}))}>
+              {Array.from({length: 24}, (_, h) => <option key={h} value={h}>{String(h).padStart(2,'0')}:00</option>)}
+            </select>
+            <p className="text-xs text-slate-500 mt-1">workflow DELIVER-DIGEST</p>
+          </div>
+          <div>
+            <label className="lbl">Jour weekly tièdes</label>
+            <select value={st.delivery.weekly_day}
+              onChange={e=>set(s=>({...s, delivery:{...s.delivery, weekly_day: e.target.value}}))}>
+              {WEEKLY_DAYS.map(d => <option key={d.value} value={d.value}>{d.label}</option>)}
+            </select>
+            <p className="text-xs text-slate-500 mt-1">workflow DELIVER-WEEKLY-TIEDES (7h)</p>
+          </div>
+          <div>
+            <label className="lbl">Footer cumulatif</label>
+            <div className="flex items-center gap-2 mt-2">
+              <input type="checkbox" checked={st.delivery.footer_cumul}
+                onChange={e=>set(s=>({...s, delivery:{...s.delivery, footer_cumul: e.target.checked}}))}
+                className="w-4 h-4 accent-blue-500" />
+              <span className="text-sm text-slate-300">Activé</span>
+            </div>
+            <p className="text-xs text-slate-500 mt-1">ajoute en bas des emails le total signaux reçus sur la période</p>
+          </div>
+        </div>
+      </div>
+
+      {/* ── Contacts ── */}
+      <div className="space-y-4 overflow-y-auto" style={{maxHeight:'380px'}}>
+        {st.contacts.map((c, idx) => {
+          const scopes = c.scopes || [];
+          const isAll = scopes.includes('ALL');
+          return (
+            <div key={c.id} className="card p-4">
+              <div className="flex justify-between items-center mb-3">
+                <span className="text-sm font-semibold text-slate-300">
+                  Contact {idx+1} — <span className={c.role==='national'?'text-blue-400':'text-purple-400'}>{c.role}</span>
+                </span>
+                <button onClick={()=>del(c.id)} className="btn-del">Supprimer</button>
+              </div>
+              <div className="grid grid-cols-2 gap-4">
+                <div className="fg">
+                  <label className="lbl">Nom</label>
+                  <input type="text" value={c.name} onChange={e=>upd(c.id,'name',e.target.value)} placeholder="ex: Marie Dupont" />
+                </div>
+                <div className="fg">
+                  <label className="lbl">Rôle *</label>
+                  <select value={c.role} onChange={e=>upd(c.id,'role',e.target.value)}>
+                    <option value="national">national — reçoit tout</option>
+                    <option value="regional">regional — filtré par région(s)</option>
+                  </select>
+                </div>
+                {showEmail && (
+                  <div className="fg">
+                    <label className="lbl">Email *</label>
+                    <input type="email" value={c.email} onChange={e=>upd(c.id,'email',e.target.value)} placeholder="ex: alertes@cabinet.fr" />
+                  </div>
+                )}
+                {showSlack && (
+                  <div className="fg">
+                    <label className="lbl">Canal Slack</label>
+                    <input type="text" value={c.slack} onChange={e=>upd(c.id,'slack',e.target.value)} placeholder="#emt-alertes" />
+                  </div>
+                )}
+              </div>
+
+              {/* C1.2 — Multi-scope régions (geographic_scope TEXT[]) */}
+              <div className="fg">
+                <div className="flex items-center justify-between mb-1">
+                  <label className="lbl mb-0">Périmètre géo * <span className="font-normal text-slate-500">(multi-sélection — TEXT[])</span></label>
+                  <button type="button" onClick={()=>setScopeAll(c.id)}
+                    className={`btn-sm btn ${isAll ? 'btn-p' : 'btn-s'}`}>⬡ ALL</button>
+                </div>
+                {!isAll && st.regions.length > 0 && (
+                  <div className="flex flex-wrap gap-1.5 mt-1">
+                    {st.regions.map(r => (
+                      <span key={r} onClick={()=>toggleScope(c.id, r)}
+                        className={`chip ${scopes.includes(r) ? 'chip-on' : 'chip-off'}`}>
+                        {scopes.includes(r) && <span className="mr-1">✓</span>}{r}
+                      </span>
+                    ))}
+                  </div>
+                )}
+                {!isAll && scopes.length === 0 && (
+                  <p className="text-xs text-amber-500 mt-1">⚠ Sélectionnez au moins 1 région ou cliquez ALL</p>
+                )}
+                {isAll && (
+                  <p className="text-xs text-slate-500 mt-1">Reçoit tous les signaux — équivalent national</p>
+                )}
+              </div>
+
+              <div className="flex gap-5 mt-1 flex-wrap">
+                <label className="flex items-center gap-2 cursor-pointer lbl mb-0">
+                  <input type="checkbox" checked={c.alert} onChange={e=>upd(c.id,'alert',e.target.checked)} className="w-4 h-4 accent-red-500" />
+                  <span className="text-sm text-slate-300">🔴 Alertes brûlantes</span>
+                </label>
+                <label className="flex items-center gap-2 cursor-pointer lbl mb-0">
+                  <input type="checkbox" checked={!!c.digest_daily} onChange={e=>upd(c.id,'digest_daily',e.target.checked)} className="w-4 h-4 accent-orange-500" />
+                  <span className="text-sm text-slate-300">📨 Digest quotidien</span>
+                </label>
+                <label className="flex items-center gap-2 cursor-pointer lbl mb-0">
+                  <input type="checkbox" checked={!!c.digest_weekly} onChange={e=>upd(c.id,'digest_weekly',e.target.checked)} className="w-4 h-4 accent-amber-500" />
+                  <span className="text-sm text-slate-300">📅 Digest hebdo (tièdes)</span>
+                </label>
+              </div>
+            </div>
+          );
+        })}
+      </div>
+
+      <button onClick={addContact} className="btn btn-s w-full mt-4 py-3 text-sm">+ Ajouter un contact</button>
+      {st.contacts.length === 0 && <p className="text-center text-slate-500 text-sm mt-3">Au moins 1 contact requis</p>}
+
+      {/* ── C1.3 Bloc HubSpot (push CRM) ── */}
+      <div className="card p-4 mt-5" style={{borderColor: crmAvailable ? '#0e7490' : '#334155'}}>
+        <div className="flex items-center justify-between mb-3">
+          <label className="lbl mb-0 flex items-center gap-2">
+            <span>🔗 Push CRM HubSpot</span>
+            {crmAvailable
+              ? <span className="text-xs font-normal text-cyan-400">disponible (service_level={st.serviceLevel})</span>
+              : <span className="text-xs font-normal text-slate-500">indisponible (Bronze/Silver) — exige Gold/Platinum</span>}
+          </label>
+          <label className="flex items-center gap-2 cursor-pointer">
+            <input type="checkbox"
+              checked={st.hubspot.enabled}
+              disabled={!crmAvailable}
+              onChange={e=>set(s=>({...s, hubspot:{...s.hubspot, enabled: e.target.checked}}))}
+              className="w-4 h-4 accent-cyan-500" />
+            <span className="text-sm text-slate-300">Activer</span>
+          </label>
+        </div>
+        {st.hubspot.enabled && crmAvailable && (
+          <div className="grid grid-cols-1 gap-3">
+            <div>
+              <label className="lbl">Token Private App HubSpot (PAT) <span className="text-slate-500 font-normal">— optionnel à la saisie</span></label>
+              <input type="password" value={st.hubspot.api_key}
+                onChange={e=>set(s=>({...s, hubspot:{...s.hubspot, api_key: e.target.value}}))}
+                placeholder="pat-xxxx-... (à compléter post-prestataire)" style={{fontFamily:'monospace', fontSize:'12px'}} />
+              <p className="text-xs text-slate-500 mt-1">
+                Scopes requis : <code>crm.objects.{`{companies,deals,contacts}`}.write</code>
+                {' · '}fourni par le prestataire HubSpot du client
+                {' · '}peut être complété en SQL plus tard
+              </p>
+            </div>
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <label className="lbl">Pipeline ID</label>
+                <input type="text" value={st.hubspot.pipeline_id}
+                  onChange={e=>set(s=>({...s, hubspot:{...s.hubspot, pipeline_id: e.target.value}}))}
+                  placeholder="default ou ID custom" style={{fontFamily:'monospace', fontSize:'12px'}} />
+              </div>
+              <div>
+                <label className="lbl">Dealstage ID initial</label>
+                <input type="text" value={st.hubspot.dealstage_id}
+                  onChange={e=>set(s=>({...s, hubspot:{...s.hubspot, dealstage_id: e.target.value}}))}
+                  placeholder="appointmentscheduled" style={{fontFamily:'monospace', fontSize:'12px'}} />
+              </div>
+            </div>
+            <p className="text-xs text-slate-400">
+              Stocké dans <code className="text-slate-300">clients.crm_config</code> (JSONB) — workflow <code className="text-slate-300">S-CRM-HUBSPOT-PUSH</code>.
+              Triple guard : <code>hubspot_enabled</code> + <code>crm_push_approved</code> + <code>api_key</code> notEmpty.
+            </p>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
+/* ─── Étape 5 ─── */
+function Step5({st}) {
+  const [copied, setCopied] = useState(false);
+  // v2.0 — passe tout st : excludeGlobal + goldPrefs + hubspot + delivery
+  const sql = useMemo(() => genSQL(st), [st]);
+
+  const copy = (e) => {
+    if (e) e.preventDefault();
+    navigator.clipboard.writeText(sql).then(() => { setCopied(true); setTimeout(()=>setCopied(false),2000); });
+  };
+  const dl = (e) => {
+    if (e) e.preventDefault();
+    const blob = new Blob([sql], {type:'text/plain;charset=utf-8'});
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `onboarding_${st.clientId}.sql`;
+    a.style.display = 'none';
+    document.body.appendChild(a);
+    a.click();
+    setTimeout(() => {
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    }, 100);
+  };
+
+  const pkgChosen = st.pkg;
+  const pkgSources = pkgChosen ? srcForPkg(pkgChosen) : [];
+  const added   = pkgChosen ? st.sources.filter(s => !pkgSources.includes(s)).length : 0;
+  const removed  = pkgChosen ? pkgSources.filter(s => !st.sources.includes(s)).length : 0;
+  const isCustom = pkgChosen && (added > 0 || removed > 0);
+
+  const slIcon = {BRONZE:'🥉', SILVER:'🥈', GOLD:'🥇', PLATINUM:'💎'};
+  const dayLabel = (WEEKLY_DAYS.find(d => d.value === st.delivery.weekly_day) || {label: st.delivery.weekly_day}).label;
+  const isGoldPlus = st.serviceLevel === 'GOLD' || st.serviceLevel === 'PLATINUM';
+
+  return (
+    <div>
+      <h2 className="mb-5">Étape 5 — Récapitulatif & Export SQL</h2>
+
+      <div className="card p-5 mb-5 border-slate-600">
+        <div className="grid grid-cols-2 gap-4 mb-4">
+          <div>
+            <p className="text-xs text-slate-500 uppercase tracking-wider">Client</p>
+            <p className="font-bold text-lg leading-tight">{st.clientName||'—'}</p>
+            <p className="text-sm font-mono text-blue-400">{st.clientId}</p>
+          </div>
+          <div>
+            <p className="text-xs text-slate-500 uppercase tracking-wider">Périmètre</p>
+            <p className="text-sm">{Array.isArray(st.geographyScope) ? st.geographyScope.join(', ') : st.geographyScope}</p>
+            <p className="text-xs text-slate-400 mt-0.5">{st.regions.join(', ')||'aucune région'}</p>
+          </div>
+          <div>
+            <p className="text-xs text-slate-500 uppercase tracking-wider">Niveau de service</p>
+            <p className="font-semibold text-base">
+              {slIcon[st.serviceLevel] || ''} {st.serviceLevel || '—'}
+            </p>
+          </div>
+          <div>
+            <p className="text-xs text-slate-500 uppercase tracking-wider">Package sources</p>
+            <p className="font-semibold">
+              {pkgChosen || 'Aucun'}
+              {isCustom && <span className="ml-2 text-xs font-normal px-1.5 py-0.5 rounded bg-amber-900 text-amber-300">Personnalisé</span>}
+            </p>
+            <p className="text-sm text-slate-300 mt-0.5">
+              {st.sources.length} sources
+              {isCustom && <span className="text-amber-400 ml-1">(+{added} / -{removed})</span>}
+            </p>
+          </div>
+          <div>
+            <p className="text-xs text-slate-500 uppercase tracking-wider">Signaux</p>
+            <p className="font-semibold">{st.signals.length} / {SIGNALS.length} signaux actifs</p>
+          </div>
+          {/* v2.0 — Livraison */}
+          <div>
+            <p className="text-xs text-slate-500 uppercase tracking-wider">Livraison</p>
+            <p className="text-sm">Digest <span className="font-mono text-slate-300">{String(st.delivery.digest_hour).padStart(2,'0')}:00</span> · Weekly <span className="text-slate-300">{dayLabel}</span></p>
+            <p className="text-xs text-slate-500">Footer cumul : {st.delivery.footer_cumul ? '✓ activé' : '✕ désactivé'}</p>
+          </div>
+          {/* v2.0 — HubSpot */}
+          <div>
+            <p className="text-xs text-slate-500 uppercase tracking-wider">Push CRM HubSpot</p>
+            {st.hubspot.enabled ? (
+              <>
+                <p className="font-semibold text-cyan-400">🔗 Activé</p>
+                <p className="text-xs text-slate-500">
+                  PAT : {st.hubspot.api_key ? '✓ fourni' : '⚠ manquant'}
+                  {st.hubspot.pipeline_id && ` · pipeline=${st.hubspot.pipeline_id}`}
+                </p>
+              </>
+            ) : (
+              <p className="text-sm text-slate-500">Désactivé</p>
+            )}
+          </div>
+          {/* v2.0 — Préférences Gold/Platinum (filtres entreprise cible) */}
+          {isGoldPlus && (
+            <div className="col-span-2">
+              <p className="text-xs text-slate-500 uppercase tracking-wider">Préférences {st.serviceLevel === 'PLATINUM' ? 'Platinum' : 'Gold'} (filtres entreprise)</p>
+              <p className="text-sm">
+                {(st.goldPrefs.ca_min_meur || st.goldPrefs.ca_max_meur)
+                  ? <span>CA : <span className="text-slate-300">{st.goldPrefs.ca_min_meur || '?'} – {st.goldPrefs.ca_max_meur || '?'} M€</span></span>
+                  : <span className="text-slate-500">CA : tout</span>}
+                {(st.goldPrefs.effectif_min || st.goldPrefs.effectif_max) && (
+                  <span> · Effectif : <span className="text-slate-300">{st.goldPrefs.effectif_min || '?'} – {st.goldPrefs.effectif_max || '?'}</span></span>
+                )}
+              </p>
+              {st.goldPrefs.sectors_excluded.length > 0 && (
+                <p className="text-xs text-slate-500 mt-1">
+                  {st.goldPrefs.sectors_excluded.length} secteur(s) exclu(s) : <span className="text-slate-400">{st.goldPrefs.sectors_excluded.slice(0, 3).join(', ')}{st.goldPrefs.sectors_excluded.length > 3 ? '…' : ''}</span>
+                </p>
+              )}
+            </div>
+          )}
+        </div>
+        {st.contacts.length > 0 && (
+          <div>
+            <p className="text-xs text-slate-500 uppercase tracking-wider mb-2">Contacts ({st.contacts.length})</p>
+            <div className="space-y-1.5">
+              {st.contacts.map(c => {
+                const scopes = c.scopes || [];
+                const scopeLabel = scopes.includes('ALL') ? 'ALL' : (scopes.length <= 2 ? scopes.join('+') : `${scopes.length} régions`);
+                return (
+                  <div key={c.id} className="flex items-center gap-2.5 text-sm rounded-lg p-2" style={{background:'rgba(15,23,42,0.5)'}}>
+                    <span className="tag text-xs" style={c.role==='national'?{background:'#1e3a8a',color:'#93c5fd'}:{background:'#3b0764',color:'#d8b4fe'}}>
+                      {c.role}
+                    </span>
+                    <span className="font-medium">{c.name||'(sans nom)'}</span>
+                    <span className="text-slate-400 text-xs">{c.email||'—'}</span>
+                    <span className="text-slate-500 text-xs ml-1" title={scopes.join(', ')}>{scopeLabel}</span>
+                    {c.slack && <span className="text-green-400 text-xs font-mono">{c.slack}</span>}
+                    <div className="flex gap-1 ml-auto">
+                      {c.alert         && <span className="text-xs">🔴</span>}
+                      {c.digest_daily  && <span className="text-xs">📨</span>}
+                      {c.digest_weekly && <span className="text-xs">📅</span>}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        )}
+      </div>
+
+      <div className="flex gap-3 mb-3">
+        <button type="button" onClick={copy} className="btn btn-p flex-1">{copied ? '✓ Copié !' : '📋 Copier le SQL'}</button>
+        <button type="button" onClick={dl}   className="btn btn-s flex-1">💾 Télécharger .sql</button>
+      </div>
+      <div className="mb-3">
+        <span className="text-xs text-slate-500">Exécution : </span>
+        <code className="text-xs bg-slate-800 text-slate-300 px-2 py-1 rounded">sudo -u postgres psql -d agent_emt</code>
+      </div>
+      <div className="sql-block text-slate-300">{sql}</div>
+    </div>
+  );
+}
+
+/* ══════════════════════════════════════════════
+   VALIDATION
+══════════════════════════════════════════════ */
+function canNext(step, st) {
+  if (step === 1) return st.clientName.trim() && st.clientId.trim() && st.regions.length > 0 && st.serviceLevel;
+  if (step === 2) return st.sources.length > 0;
+  if (step === 3) return st.signals.length > 0;
+  if (step === 4) {
+    if (st.contacts.length === 0) return false;
+    if (st.channel !== 'slack' && !st.contacts.every(c => c.email.trim())) return false;
+    // C1.2 — Tout contact doit avoir au moins une région (ou 'ALL')
+    if (!st.contacts.every(c => (c.scopes || []).length > 0)) return false;
+    // C1.3 — HubSpot : PAT optionnel à la saisie (peut être complété post-prestataire)
+    return true;
+  }
+  return true;
+}
+
+const MSG = {
+  1: 'Requis : Nom du cabinet · Client ID · au moins 1 région · niveau de service',
+  2: 'Sélectionnez au moins 1 source',
+  3: 'Sélectionnez au moins 1 signal',
+  4: 'Requis : 1+ contact avec email · scope géo (≥1 région ou ALL par contact)',
+};
+
+/* ══════════════════════════════════════════════
+   APP
+══════════════════════════════════════════════ */
+const INIT = {
+  clientName:'', clientId:'', idManual:false, secteur:'',
+  geographyScope:['national'], regions:[],
+  serviceLevel: null, llmProfile: null, analysisDepth: null, featureFlags: null,
+  // S-108 : seuils scoring (pré-remplis selon service_level)
+  // S-132 (scoring_prudence_policy) à réintroduire post-déploiement (>= 2026-06-15)
+  pass2Enabled: null,
+  tiedeMin: null, tiedeMax: null,
+  pass2GrayzoneMin: null, pass2GrayzoneMax: null,
+  pkg:null, sources:[],
+  signals: SIGNALS.map(s=>s.sid),
+  channel:'email',
+  contacts:[{id:1, name:'', email:'', role:'national', scopes:['ALL'], slack:'', alert:true, digest_daily:true, digest_weekly:true}],
+  excludeGlobal: DEFAULT_EXCLUDE_GLOBAL,
+  // C1.1 — Préférences Gold/Platinum (affichées conditionnellement)
+  goldPrefs: {
+    ca_min_meur: '', ca_max_meur: '',
+    effectif_min: '', effectif_max: '',
+    sectors_excluded: [],
+  },
+  // C1.3 — Bloc HubSpot (push CRM)
+  hubspot: {
+    enabled: false,
+    api_key: '',
+    pipeline_id: '',
+    dealstage_id: '',
+  },
+  // C1.4 — Préférences livraison
+  delivery: {
+    digest_hour: 8,
+    weekly_day: 'friday',
+    footer_cumul: true,
+  },
+};
+
+function App() {
+  const [step, setStep] = useState(1);
+  const [st, set] = useState(INIT);
+
+  const ok = canNext(step, st);
+
+  const stepEl = [
+    <Step1 st={st} set={set} />,
+    <Step2 st={st} set={set} />,
+    <Step3 st={st} set={set} />,
+    <Step4 st={st} set={set} />,
+    <Step5 st={st} />,
+  ];
+
+  return (
+    <div style={{background:'#0f172a', minHeight:'100vh'}}>
+      <div style={{borderBottom:'1px solid #1e293b'}} className="px-6 py-3">
+        <div className="max-w-3xl mx-auto flex items-center gap-3">
+          <img src="logo-signalai.png"
+               alt="SignalAi" className="h-8 w-8 rounded-lg object-cover" />
+          <span className="text-white text-sm"><strong>SignalAi</strong>&nbsp;&nbsp;Onboarding Form</span>
+          <span className="ml-auto text-xs text-slate-600 font-mono">v2.0 · 2026-05-17</span>
+        </div>
+      </div>
+
+      <div className="max-w-3xl mx-auto px-6 py-8">
+        <Stepper cur={step} />
+
+        <div className="card p-6 mb-5">{stepEl[step-1]}</div>
+
+        <div className="flex items-center justify-between">
+          <button className="btn btn-s" onClick={()=>setStep(s=>s-1)} disabled={step===1}>← Précédent</button>
+          <span className="text-xs text-slate-600">{step} / 5</span>
+          {step < 5
+            ? <button className="btn btn-p" onClick={()=>setStep(s=>s+1)} disabled={!ok}>Suivant →</button>
+            : <button className="btn btn-s" onClick={()=>{setStep(1);set(INIT);}}>+ Nouveau client</button>
+          }
+        </div>
+
+        {!ok && step < 5 && (
+          <p className="text-center text-xs text-amber-500 mt-3">{MSG[step]}</p>
+        )}
+      </div>
+    </div>
+  );
+}
+
+ReactDOM.createRoot(document.getElementById('root')).render(<App />);
+</script>
+</body>
+</html>
