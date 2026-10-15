@@ -362,7 +362,7 @@
         <span class="eyebrow">Protection des données</span>
         <h1>Liste des sous-traitants</h1>
         <p class="lead">Cette page recense de manière exhaustive et nominative les sous-traitants utilisés par FC-Invest SASU pour le traitement des données à caractère personnel dans le cadre du service SignalAi, avec leur localisation et le cadre de transfert applicable. Elle constitue la référence opposable pour l'application de l'article 13.1.e du RGPD et est mise à jour à chaque évolution.</p>
-        <p class="updated">Dernière mise à jour : 1ᵉʳ mai 2026</p>
+        <p class="updated">Dernière mise à jour : 14 octobre 2026</p>
 
         <nav class="toc" aria-label="Sommaire">
           <p class="toc-title">Sommaire</p>
@@ -420,7 +420,7 @@
               </tr>
               <tr>
                 <td><strong>Anthropic, PBC</strong></td>
-                <td>Modèle de langage pour la génération de résumés et l'analyse de signaux</td>
+                <td>Modèle de langage pour l'analyse des signaux, la génération de synthèses et la préparation de la prise de contact avec les décideurs identifiés</td>
                 <td>États-Unis</td>
                 <td><span class="badge badge-dpf">DPF</span></td>
               </tr>
@@ -444,8 +444,20 @@
               </tr>
               <tr>
                 <td><strong>Apify Technologies s.r.o.</strong></td>
-                <td>Collecte automatisée de profils LinkedIn publics</td>
+                <td>Collecte automatisée des rubriques publiques de nominations et d'opérations de la presse économique spécialisée</td>
                 <td>République tchèque (UE)</td>
+                <td><span class="badge badge-eu">UE</span></td>
+              </tr>
+              <tr>
+                <td><strong>OVH SAS</strong></td>
+                <td>Envoi des e-mails de service (alertes, synthèses, alertes approfondies) depuis l'adresse alertes@signalai.fr ; gestion du nom de domaine</td>
+                <td>France (UE)</td>
+                <td><span class="badge badge-eu">UE</span></td>
+              </tr>
+              <tr>
+                <td><strong>Brevo SAS</strong></td>
+                <td>Envoi des e-mails de connexion sécurisée à la plateforme app.signalai.fr</td>
+                <td>France (UE)</td>
                 <td><span class="badge badge-eu">UE</span></td>
               </tr>
             </tbody>
@@ -488,8 +500,8 @@
             </thead>
             <tbody>
               <tr>
-                <td><strong>Google LLC (Gmail)</strong></td>
-                <td>Envoi des alertes, des digests et des communications opérationnelles par email</td>
+                <td><strong>Google LLC (Gmail, Google Sheets)</strong></td>
+                <td>Communications opérationnelles par e-mail avec les cabinets clients ; tableau interne de contrôle des livraisons</td>
                 <td>États-Unis</td>
                 <td><span class="badge badge-dpf">DPF</span></td>
               </tr>
@@ -512,6 +524,53 @@
                 <td>Livraison d'alertes en canal Slack pour les cabinets ayant configuré ce mode de réception, et notifications de supervision technique interne</td>
                 <td>États-Unis</td>
                 <td><span class="badge badge-dpf">DPF</span></td>
+              </tr>
+            </tbody>
+          </table>
+
+          <h3>3.4 Coordonnées professionnelles à l'approbation</h3>
+          <table>
+            <thead>
+              <tr>
+                <th>Sous-traitant</th>
+                <th>Rôle</th>
+                <th>Localisation</th>
+                <th>Cadre transfert</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><strong>Dropcontact SAS</strong></td>
+                <td>Fourniture ponctuelle de l'adresse e-mail professionnelle d'un décideur, uniquement lorsqu'un associé du cabinet client approuve une alerte. La coordonnée est transmise à ce seul associé et n'est pas conservée par SignalAi.</td>
+                <td>France (hébergement UE)</td>
+                <td><span class="badge badge-eu">UE</span></td>
+              </tr>
+            </tbody>
+          </table>
+
+          <h3>3.5 Fournisseurs de données professionnelles</h3>
+          <p>Pour identifier les dirigeants et décideurs des entreprises concernées par un signal, FC-Invest SASU interroge les fournisseurs ci-dessous. Aucune donnée personnelle ne leur est confiée : la requête porte sur une entreprise et, le cas échéant, sur les fonctions recherchées. Ces fournisseurs sont responsables de leurs propres bases de données ; ils sont listés ici par transparence.</p>
+          <table>
+            <thead>
+              <tr>
+                <th>Fournisseur</th>
+                <th>Données obtenues</th>
+                <th>Localisation</th>
+                <th>Cadre</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><strong>Pappers SAS</strong></td>
+                <td>Dirigeants et bénéficiaires effectifs inscrits aux registres publics des entreprises</td>
+                <td>France (UE)</td>
+                <td><span class="badge badge-eu">UE</span></td>
+              </tr>
+              <tr>
+                <td><strong>People Data Labs, Inc.</strong></td>
+                <td>Nom, fonction et profil professionnel public de décideurs d'entreprise (aucune adresse e-mail ni téléphone)</td>
+                <td>États-Unis</td>
+                <td>Fournisseur de données</td>
               </tr>
             </tbody>
           </table>
@@ -542,6 +601,10 @@
               </tr>
             </thead>
             <tbody>
+              <tr>
+                <td>14 octobre 2026</td>
+                <td>Mise à jour de la liste. Ajouts : OVH (envoi des e-mails de service), Brevo (e-mails de connexion à la plateforme), Dropcontact (coordonnées professionnelles à l'approbation), et une nouvelle rubrique « Fournisseurs de données professionnelles » (Pappers, People Data Labs). Précisions : description du rôle d'Apify (presse économique spécialisée), d'Anthropic et de Google (Gmail, Google Sheets).</td>
+              </tr>
               <tr>
                 <td>1ᵉʳ mai 2026</td>
                 <td>Création de la page dédiée. Recensement initial de 11 sous-traitants : 8 structurels (GitHub, Hostinger, Hetzner, Anthropic, OpenAI, Brave, Perplexity, Apify) et 3 opérationnels (HubSpot, Google Gmail, Slack).</td>
